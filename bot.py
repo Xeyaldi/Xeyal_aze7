@@ -43,14 +43,23 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
 async def is_admin(client, message):
-    if message.chat.type == "private": return True
-    try:
-        user = await client.get_chat_member(message.chat.id, message.from_user.id)
-        return user.status in ("administrator", "creator")
-    except: return False
+    if message.chat.type == "private":
+        return True
 
-@app.on_message(filters.command("start"))
-async def start_cmd(client, message):
+    user_id = None
+
+    if message.from_user:
+        user_id = message.from_user.id
+    elif message.sender_chat:
+        user_id = message.sender_chat.id
+    else:
+        return False
+
+    try:
+        member = await client.get_chat_member(message.chat.id, user_id)
+        return member.status in ("administrator", "creator")
+    except:
+        return False
     me = await client.get_me() # Bura mütləq await olmalı idi
     text = "sᴀʟᴀᴍ ! ᴍəɴ ʜəᴍ ᴅᴀɴışᴀɴ, ʜəᴍ ᴅə ᴍüxᴛəʟɪғ\nᴛᴀɢ əᴍʀʟəʀɪ ᴏʟᴀɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ʙᴏᴛᴀᴍ.\nᴋᴏᴍᴜᴛʟᴀʀɪ öʏʀəɴᴍəᴋ üçüɴ /help ʏᴀᴢᴍᴀğıɴɪᴢ\nᴋɪғᴀʏəᴛᴅɪʀ."
     markup = InlineKeyboardMarkup([
