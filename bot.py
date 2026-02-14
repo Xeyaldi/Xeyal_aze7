@@ -51,9 +51,11 @@ async def is_admin(client, message):
 
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message):
+    # Düzəliş: me obyekti await edilərək götürülür
+    me = await client.get_me()
     text = "sᴀʟᴀᴍ ! ᴍəɴ ʜəᴍ ᴅᴀɴışᴀɴ, ʜəᴍ ᴅə ᴍüxᴛəʟɪғ\nᴛᴀɢ əᴍʀʟəʀɪ ᴏʟᴀɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ʙᴏᴛᴀᴍ.\nᴋᴏᴍᴜᴛʟᴀʀɪ öʏʀəɴᴍəᴋ üçüɴ /help ʏᴀᴢᴍᴀğıɴɪᴢ\nᴋɪғᴀʏəᴛᴅɪʀ."
     markup = InlineKeyboardMarkup([
-        [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{app.get_me().username}?startgroup=true")],
+        [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{me.username}?startgroup=true")],
         [InlineKeyboardButton("👩🏻‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 söʜʙəᴛ ǫʀᴜᴘᴜ", url="https://t.me/sohbetqruprc")]
     ])
     await message.reply_text(text, reply_markup=markup)
@@ -134,14 +136,10 @@ async def chatbot_logic(client, message):
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
-        # Chatbot aktivdirsə və random şans tutursa cavab ver
         if chat_status.get(chat_id, True) and random.random() < 0.20:
             cur.execute("SELECT content FROM brain WHERE chat_id = %s ORDER BY RANDOM() LIMIT 1", (chat_id,))
             res = cur.fetchone()
             if res: await message.reply_text(res[0])
-        
-        # Hər bir mesajı bazaya öyrən
         cur.execute("INSERT INTO brain (content, chat_id) VALUES (%s, %s)", (message.text, chat_id))
         conn.commit()
         cur.close()
