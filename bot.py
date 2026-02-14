@@ -61,7 +61,6 @@ async def is_admin(client, message):
 
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message):
-    # START MESAJI - FONT YENİLƏNDİ
     text = (
         "sᴀʟᴀᴍ ! ᴍəɴ ʜəᴍ ᴅᴀɴışᴀɴ, ʜəᴍ ᴅə ᴍüxᴛəʟɪғ\n"
         "ᴛᴀɢ əᴍʀʟəʀɪ ᴏʟᴀɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ʙᴏᴛᴀᴍ.\n"
@@ -79,7 +78,6 @@ async def start_cmd(client, message):
 
 @app.on_message(filters.command("help"))
 async def help_cmd(client, message):
-    # HELP MESAJI - FONT YENİLƏNDİ
     text = (
         "🎮 əʏʟəɴᴄəʟɪ ᴏʏᴜɴʟᴀʀ:\n\n"
         "🏀 /basket - ʙᴀsᴋᴇᴛʙᴏʟ\n"
@@ -145,21 +143,36 @@ async def cb_toggle(client, message):
     if len(message.command) > 1:
         choice = message.command[1].lower()
         chat_status[message.chat.id] = (choice == "on")
-    status = chat_status.get(message.chat.id, True)
-    await message.reply_text(f"✅ Chatbot hazırda: {'Aktiv' if status else 'Deaktiv'}")
+        status_text = "Aktiv edildi ✅" if choice == "on" else "Deaktiv edildi 🛑"
+        await message.reply_text(f"💬 Chatbot bu qrup üçün {status_text}")
+    else:
+        await message.reply_text("💬 Chatbotu idarə etmək üçün `/chatbot on` və ya `/chatbot off` yazın.")
 
 @app.on_message(filters.group & ~filters.bot)
 async def chatbot_logic(client, message):
     if not message.text or message.text.startswith('/'): return
     chat_id = message.chat.id
+    
+    # Chatbot "on" deyilsə mesajları bazaya yazma və cavab vermə
+    if not chat_status.get(chat_id, False): return
+
     try:
-        conn = get_db_connection(); cur = conn.cursor()
-        if chat_status.get(chat_id, True) and random.random() < 0.20:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # 20% ehtimalla cavab ver
+        if random.random() < 0.20:
             cur.execute("SELECT content FROM brain WHERE chat_id = %s ORDER BY RANDOM() LIMIT 1", (chat_id,))
             res = cur.fetchone()
-            if res: await message.reply_text(res[0])
+            if res:
+                await message.reply_text(res[0])
+        
+        # Mesajı bazaya yaz (öyrənmə)
         cur.execute("INSERT INTO brain (content, chat_id) VALUES (%s, %s)", (message.text, chat_id))
-        conn.commit(); cur.close(); conn.close()
-    except: pass
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Chatbot xətası: {e}")
 
 app.run()
