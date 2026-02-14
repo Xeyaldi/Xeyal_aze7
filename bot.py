@@ -65,7 +65,7 @@ async def start_cmd(client, message):
 
     buttons = [
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("🧑‍💻 sᴀʜɪʙ", url="https://t.me/Aysberqqq")],
+        [InlineKeyboardButton("🧑‍💻 sᴀʜɪʙ", url="https://t.me/Kullaniciadidi")],
         [InlineKeyboardButton("📢 ʙᴏᴛ ᴋᴀɴᴀʟı", url="https://t.me/ht_bots"), InlineKeyboardButton("🆘 ᴋöᴍəᴋ ǫʀᴜᴘᴜ", url="https://t.me/ht_bots_chat")],
         [InlineKeyboardButton("🛠 sᴀʜɪʙ əᴍʀɪ", callback_data="owner_panel")]
     ]
