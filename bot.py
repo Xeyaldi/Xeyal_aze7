@@ -14,17 +14,17 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-chat_status = {}
 tag_process = {}
+chat_status = {}
 
-# ----------------- 250+ BAYRAQLAR (TAM SİYAHI - BİR DƏNƏSİ BELƏ SİLİNMƏDİ) -----------------
+# ----------------- 250+ BAYRAQLAR (TAM SİYAHI - TOXUNULMADI) -----------------
 FLAGS = [
     "🇦🇿", "🇹🇷", "🇵🇰", "🇺🇿", "🇰🇿", "🇰🇬", "🇹🇲", "🇦🇱", "🇩🇿", "🇦🇸", "🇦🇩", "🇦🇴", "🇦🇮", "🇦🇶", "🇦🇬", "🇦🇷", "🇦🇲", "🇦🇼", "🇦🇺", "🇦🇹",
     "🇧🇸", "🇧🇭", "🇧🇩", "🇧🇧", "🇧🇪", "🇧🇿", "🇧🇯", "🇧🇲", "🇧🇹", "🇧🇴", "🇧🇦", "🇧🇼", "🇧🇷", "🇮🇴", "🇻🇬", "🇧🇳", "🇧🇬", "🇧🇫", "🇧🇮", "🇰🇭",
     "🇨🇲", "🇨🇦", "🇮🇨", "🇨🇻", "🇧🇶", "🇰🇾", "🇨🇫", "🇹🇩", "🇨🇱", "🇨🇳", "🇨🇽", "🇨🇨", "🇨🇴", "🇰🇲", "🇨🇬", "🇨🇩", "🇨🇰", "🇨🇷", "🇨🇮", "🇭🇷",
     "🇨🇺", "🇨🇼", "🇨🇾", "🇨🇿", "🇩🇰", "🇩🇯", "🇩🇲", "🇩🇴", "🇪🇨", "🇪🇬", "🇸🇻", "🇬🇶", "🇪🇷", "🇪🇪", "🇪🇹", "🇪🇺", "🇫🇰", "🇫🇴", "🇫🇯", "🇫🇮",
     "🇫🇷", "🇬🇫", "🇵🇫", "🇹🇫", "🇬🇦", "🇬🇲", "🇬🇪", "🇩🇪", "🇬🇭", "🇬🇮", "🇬🇷", "🇬🇱", "🇬🇩", "🇬🇵", "🇬🇺", "🇬🇹", "🇬🇬", "🇬🇳", "🇬🇼", "🇬🇾",
-    "🇭🇹", "🇭🇳", "🇭🇰", "🇭🇺", "🇮🇸", "🇮🇳", "🇮🇩", "🇮🇷", "🇮拉克", "🇮🇪", "🇮🇲", "🇮🇱", "🇮🇹", "🇯🇲", "🇯🇵", "🇯🇪", "🇯🇴", "🇰🇪", "🇰🇮", "🇽🇰",
+    "🇭🇹", "🇭🇳", "🇭🇰", "🇭🇺", "🇮🇸", "🇮🇳", "🇮🇩", "🇮🇷", "🇮🇶", "🇮🇪", "🇮🇲", "🇮🇱", "🇮🇹", "🇯🇲", "🇯🇵", "🇯🇪", "🇯🇴", "🇰🇪", "🇰🇮", "🇽🇰",
     "🇰🇼", "🇱🇦", "🇱🇻", "🇱🇧", "🇱🇸", "🇱🇷", "🇱🇾", "🇱🇮", "🇱🇹", "🇱🇺", "🇲🇴", "🇲🇰", "🇲🇬", "🇲🇼", "🇲🇾", "🇲🇻", "🇲🇱", "🇲🇹", "🇲🇭", "🇲🇶",
     "🇲🇷", "🇲🇺", "🇾🇹", "🇲🇽", "🇫🇲", "🇲🇩", "🇲🇨", "🇲🇳", "🇲🇪", "🇲🇸", "🇲🇦", "🇲🇿", "🇲🇲", "🇳🇦", "🇳🇷", "🇳🇵", "🇳🇱", "🇳🇨", "🇳🇿", "🇳🇮",
     "🇳🇪", "🇳🇬", "🇳🇺", "🇳🇫", "🇰🇵", "🇲🇵", "🇳🇴", "🇴🇲", "🇵🇦", "🇵🇬", "🇵🇾", "🇵🇪", "🇵🇭", "🇵🇳", "🇵🇱", "🇵🇹", "🇵🇷", "🇶🇦", "🇷🇪", "🇷🇴",
@@ -34,7 +34,7 @@ FLAGS = [
     "🇾🇪", "🇿🇲", "🇿🇼", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "🏴󠁧󠁢󠁷󠁬󠁳󠁿"
 ]
 
-# ----------------- 200+ EMOJİLƏR (TAM SİYAHI - BİR DƏNƏSİ BELƏ SİLİNMƏDİ) -----------------
+# ----------------- 200+ EMOJİLƏR (TAM SİYAHI - TOXUNULMADI) -----------------
 FANCY_EMOJIS = [
     "🌈", "🪐", "🎡", "🍭", "💎", "🔮", "⚡", "🔥", "🚀", "🛸", "🎈", "🎨", "🎭", "🎸", "👾", "🧪", "🧿", "🍀", "🍿", "🎁", 
     "🔋", "🧸", "🎉", "✨", "🌟", "🌙", "☀️", "☁️", "🌊", "🌋", "☄️", "🍄", "🌹", "🌸", "🌵", "🌴", "🍁", "🍎", "🍓", "🍍", 
@@ -42,104 +42,105 @@ FANCY_EMOJIS = [
     "🎧", "🎤", "🎹", "🎺", "🎻", "🎲", "🎯", "🎮", "🧩", "🦄", "🦁", "🦊", "🐼", "🐨", "🐯", "🐝", "🦋", "🦜", "🐬", 
     "🐳", "🐾", "🐉", "🎐", "🎌", "🚩", "🏆", "🎖️", "🎫", "💌", "💍", "👓", "🎒", "👒", "👟", "👗", "👑", "💄", "🧤", "🧶", 
     "🧪", "🧬", "🔭", "📡", "💡", "🕯️", "📚", "📕", "📜", "💵", "💸", "💳", "⚖️", "🗝️", "🔓", "🔨", "🛡️", "🏹", "⚔️", "💊", 
-    "🩹", "🩸", "🧺", "🧼", "🧽", "🪒", "🚿", "🛁", "🧻", "🧱", "⛓️", "🧨", "🧧", "🎀", "🎊", "🎐", "🎋", "🎎", "🎏", "🧠", "🦷", 
+    "🩹", "🩸", "🧺", "🧼", "🧽", "🪒", "🚿", "🛁", "🧻", "🧱", "⛓️", "🧨", "🧧", "🎀", "🎊", "🎋", "🎎", "🎏", "🧠", "🦷", 
     "🦴", "👀", "👅", "👄", "👂", "👃", "👣", "👁️‍🗨️", "🗨️", "🧣", "🧥", "👒", "👜", "👛", "👗", "👘", "👖", "👕", "👞", "👟"
 ]
-
-READY_RESPONSES = ["Necəsən?", "Nə edirsən?", "Mən hər şeyi yadda saxlayıram!", "Azərbaycan dilini sevirəm!"]
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
-# ----------------- START MESAJI (SAHİBƏ VƏ QRUP LİNKİ İLƏ) -----------------
-@app.on_message(filters.command("start"))
-async def start(client, message):
-    text = (
-        "sᴀʟᴀᴍ ! ᴍəɴ ʜəᴍ ᴅᴀɴışᴀɴ, ʜəᴍ ᴅə ᴍüxᴛəʟɪғ ᴛᴀɢ əᴍʀʟəʀɪ ᴏʟᴀɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ʙᴏᴛᴀᴍ. "
-        "ᴋᴏᴍᴜᴛʟᴀʀı öʏʀəɴᴍəᴋ üçüɴ /help ʏᴀᴢᴍᴀğıɴıᴢ ᴋɪғᴀʏəᴛᴅɪʀ."
-    )
-    markup = InlineKeyboardMarkup([
-        [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("👩🏻‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 söʜʙəᴛ ǫʀᴜᴘᴜ", url="https://t.me/sohbetqruprc")]
+async def is_admin(client, message):
+    if message.chat.type == "private": return True
+    user = await client.get_chat_member(message.chat.id, message.from_user.id)
+    return user.status in ("administrator", "creator")
+
+# Düymələr Toolkit
+def get_buttons():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("👩🏻‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), 
+         InlineKeyboardButton("💬 söʜʙəᴛ ǫʀᴜᴘᴜ", url="https://t.me/sohbetqruprc")]
     ])
-    await message.reply_text(text, reply_markup=markup)
+
+# ----------------- START MESAJI -----------------
+@app.on_message(filters.command("start") & filters.private)
+async def start_private(client, message):
+    text = "sᴀʟᴀᴍ ! ᴍəɴ ʜəᴍ ᴅᴀɴışᴀɴ, ʜəᴍ ᴅə ᴍüxᴛəʟɪғ ᴛᴀɢ əᴍʀʟəʀɪ ᴏʟᴀɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ʙᴏᴛᴀᴍ. ᴋᴏᴍᴜᴛʟᴀʀı öʏʀəɴᴍəᴋ üçüɴ /help ʏᴀᴢᴍᴀğıɴıᴢ ᴋɪғᴀʏəᴛᴅɪʀ."
+    await message.reply_text(text, reply_markup=get_buttons())
 
 # ----------------- HELP VƏ OYUNLAR -----------------
 @app.on_message(filters.command("help"))
 async def help_cmd(client, message):
     help_text = (
-        "🎮 Əʏləncəʟɪ ᴏʏᴜɴʟᴀʀ:\n\n"
-        "🏀 /basket - Basketbol\n"
-        "⚽ /futbol - Futbol\n"
-        "🎯 /dart - Dart\n"
-        "🎰 /slot - Slot\n"
-        "🎲 /dice - Zar\n\n"
-        "📢 Tağ komandaları:\n"
-        "🔹 /tag - Normal tək-tək tağ\n"
-        "🔹 /utag - Emoji ilə tək-tək tağ\n"
-        "🔹 /flagtag - Bayraqla tək-tək tağ\n"
-        "🔹 /tektag - Nick ilə tək-tək tağ\n\n"
-        "🛑 Dayandırmaq üçün: /stop\n"
-        "💬 Chatbot: /chatbot on/off"
+        "🎮 **Əʏləncəʟɪ ᴏʏᴜɴʟᴀʀ:**\n"
+        "🏀 /basket, ⚽ /futbol, 🎯 /dart, 🎰 /slot, 🎲 /dice\n\n"
+        "📢 **Tağ Komandaları (Yalnız Adminlər):**\n"
+        "🔹 `/start tag` - Normal tağ\n"
+        "🔹 `/start utag` - Emoji tağ\n"
+        "🔹 `/start flagtag` - Bayraq tağ\n"
+        "🔹 `/start tektag` - Nick ilə tağ\n\n"
+        "🛑 `/stop tag` - Tağ prosesini dayandırır\n"
+        "💬 `/chatbot on/off` - Chatbot idarəsi"
     )
-    await message.reply_text(help_text)
+    await message.reply_text(help_text, reply_markup=get_buttons())
 
 @app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice"]))
 async def play_games(client, message):
     emoji_map = {"basket": "🏀", "futbol": "⚽", "dart": "🎯", "slot": "🎰", "dice": "🎲"}
     await client.send_dice(message.chat.id, emoji=emoji_map[message.command[0]])
 
-# ----------------- TAĞ SİSTEMİ (2 SANİYƏ, NİCKSİZ, TƏK-TƏK) -----------------
-@app.on_message(filters.command("stop") & filters.group)
-async def stop_tag(client, message):
-    tag_process[message.chat.id] = False
-    await message.reply_text("🛑 Tağ prosesi dayandırıldı!")
+# ----------------- TAĞ SİSTEMİ (/start tag ŞƏKLİNDƏ) -----------------
+@app.on_message(filters.command("start") & filters.group)
+async def start_tag_logic(client, message):
+    if len(message.command) < 2: return
+    if not await is_admin(client, message):
+        return await message.reply_text("❌ Bu komandanı yalnız adminlər istifadə edə bilər!")
 
-@app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]) & filters.group)
-async def mass_tag(client, message):
+    sub_cmd = message.command[1].lower()
+    if sub_cmd not in ["tag", "utag", "flagtag", "tektag"]: return
+
     chat_id = message.chat.id
     tag_process[chat_id] = True
-    user_msg = " ".join(message.command[1:]) if len(message.command) > 1 else ""
-    cmd = message.command[0].lower()
+    user_msg = " ".join(message.command[2:]) if len(message.command) > 2 else ""
     
     members = []
     async for member in client.get_chat_members(chat_id):
         if not member.user.is_bot and not member.user.is_deleted:
             members.append(member.user)
 
-    if not members:
-        return await message.reply_text("❌ Üzv tapılmadı!")
-
     for user in members:
         if not tag_process.get(chat_id, True): break
         
-        # ADAMİN ADİ GÖRSƏNMƏSİN, SADƏCƏ BAYRAQ/EMOJİ PROFİLƏ BAĞLI OLSUN
-        if cmd == "flagtag":
+        if sub_cmd == "flagtag":
             icon = random.choice(FLAGS)
             tag_text = f"{user_msg} [{icon}](tg://user?id={user.id})"
-        elif cmd == "utag":
+        elif sub_cmd == "utag":
             icon = random.choice(FANCY_EMOJIS)
             tag_text = f"{user_msg} [{icon}](tg://user?id={user.id})"
-        elif cmd == "tektag":
+        elif sub_cmd == "tektag":
             tag_text = f"{user_msg} [{user.first_name}](tg://user?id={user.id})"
-        else: # Normal /tag
+        else:
             tag_text = f"{user_msg} [💎](tg://user?id={user.id})"
         
         try:
-            await client.send_message(chat_id, tag_text)
-            await asyncio.sleep(2.0) # SƏNİN İSTƏDİYİN 2 SANİYƏLİK SÜRƏT
+            await client.send_message(chat_id, tag_text, reply_markup=get_buttons())
+            await asyncio.sleep(2.0)
         except FloodWait as e:
             await asyncio.sleep(e.value)
-        except:
-            pass
+        except: pass
     
     tag_process[chat_id] = False
 
-# ----------------- CHATBOT (DATABASE ÖYRƏNMƏ) -----------------
+@app.on_message(filters.command("stop") & filters.group)
+async def stop_tag_logic(client, message):
+    if len(message.command) < 2 or message.command[1].lower() != "tag": return
+    if not await is_admin(client, message): return
+    tag_process[message.chat.id] = False
+    await message.reply_text("🛑 Tağ prosesi dayandırıldı!")
+
+# ----------------- CHATBOT VƏ DATABASE ÖYRƏNMƏ -----------------
 @app.on_message(filters.group & ~filters.bot)
 async def chat_logic(client, message):
     chat_id = message.chat.id
-    # ÖYRƏNMƏ (HƏMİŞƏ AKTİVDİR)
     try:
         if message.text or message.sticker or message.voice:
             conn = get_db_connection(); cur = conn.cursor()
@@ -151,7 +152,6 @@ async def chat_logic(client, message):
             conn.commit(); cur.close(); conn.close()
     except: pass
 
-    # CAVAB VERMƏ (ON/OFF KOMANDASINA TABEDİR)
     if chat_status.get(chat_id, True):
         if random.random() < 0.20 and message.text and not message.text.startswith('/'):
             try:
@@ -167,14 +167,10 @@ async def chat_logic(client, message):
 
 @app.on_message(filters.command("chatbot") & filters.group)
 async def toggle_chat(client, message):
-    if len(message.command) < 2: 
-        return await message.reply_text("İstifadə: `/chatbot on` və ya `/chatbot off`")
+    if not await is_admin(client, message): return
+    if len(message.command) < 2: return
     status = message.command[1].lower()
-    if status == "on":
-        chat_status[message.chat.id] = True
-        await message.reply_text("✅ **Chatbot AKTİV edildi.**")
-    elif status == "off":
-        chat_status[message.chat.id] = False
-        await message.reply_text("❌ **Chatbot DEAKTİV edildi.**")
+    chat_status[message.chat.id] = (status == "on")
+    await message.reply_text(f"✅ Chatbot {'Aktiv' if status == 'on' else 'Deaktiv'} edildi.")
 
 app.run()
