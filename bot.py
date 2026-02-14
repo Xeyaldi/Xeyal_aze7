@@ -10,15 +10,16 @@ API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-OWNERS = [8024893255] 
+# SAHİBƏ VƏ OWNER ID-LƏRİ
+OWNERS = [6241071228, 7592728364, 8024893255] 
 SAKIL_LINKI = "https://i.postimg.cc/mDTTvtxS/20260214-163714.jpg" 
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 tag_process = {}
 chatbot_status = {}
 
-# ----------------- SİYAHLAR (KƏSİLMƏDİ) -----------------
-BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
+# ----------------- SİYAHLAR (HEÇ BİRİ KƏSİLMƏDİ) -----------------
+BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧🇶","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬🇶","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮🇶","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲🇶","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱開","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
 EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉"]
 CB_SOZLER = ["Salam","Necəsən?","Nə var nə yox?","Hardasan?","Xoş gəldin","Sağ ol","Buyur","Bəli","Xeyr","Əlbəttə","Can","Nolsun?","Gözəl","Bomba kimi","İşdəyəm","Evdəyəm","Yoldayam","Nə edirsən?","Heç nə","Sən nə edirsən?","Məzələnirsən?","Vay vay","Ay can","Oldu"]
 
@@ -49,7 +50,7 @@ async def is_admin(client, message):
     except:
         return False
 
-# --- START MESAJI ---
+# --- START MESAJI (DÜZƏLİŞ: QRUPDA VƏ ŞƏXSİDƏ İŞLƏYİR) ---
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message):
     try:
@@ -62,11 +63,11 @@ async def start_cmd(client, message):
     except:
         pass
 
+    # DÜZƏLİŞ: Sahibə butonu linki dəyişdirildi
     buttons = [
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("🧑‍💻 sᴀʜɪʙ", url="https://t.me/kullaniciadidi")],
-        [InlineKeyboardButton("📢 ʙᴏᴛ ᴋᴀɴᴀʟı", url="https://t.me/ht_bots"), InlineKeyboardButton("🆘 ᴋöᴍəᴋ ǫʀᴜᴘᴜ", url="https://t.me/ht_bots_chat")],
-        [InlineKeyboardButton("🛠 sᴀʜɪʙ əᴍʀɪ", callback_data="owner_panel")]
+        [InlineKeyboardButton("👩🏻‍💻 sᴀʜɪʙə", url="https://t.me/kullaniciadidi"), InlineKeyboardButton("💬 söʜʙəᴛ ǫʀᴜᴘᴜ", url="https://t.me/sohbetqruprc")],
+        [InlineKeyboardButton("🛠 sᴀʜɪʙə əᴍʀɪ", callback_data="sahiba_panel")]
     ]
     
     await message.reply_photo(
@@ -75,15 +76,15 @@ async def start_cmd(client, message):
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 
-# --- SAHİB PANELİ ---
-@app.on_callback_query(filters.regex("owner_panel"))
-async def owner_callback(client, callback_query):
+# --- SAHİBƏ PANELİ ---
+@app.on_callback_query(filters.regex("sahiba_panel"))
+async def sahiba_callback(client, callback_query):
     if callback_query.from_user.id not in OWNERS:
-        return await callback_query.answer("❌ Bu bölmə yalnız Sahib üçündür!", show_alert=True)
+        return await callback_query.answer("❌ Bu bölmə üçün yetkiniz yoxdur!", show_alert=True)
     
     await callback_query.edit_message_caption(
         caption=(
-            "✨ **🧑‍💻 sᴀʜɪʙ ÖZƏL PANEL**\n\n"
+            "✨ **sᴀʜɪʙə ÖZƏL PANEL**\n\n"
             "📢 **Yönləndirmə (Broadcast) Qaydası:**\n"
             "Mesajı yazıb /yonlendir yazın. Bot həm qruplara, həm də şəxsi yazanlara göndərəcək.\n\n"
             "**Nümunə:** `/yonlendir Salam!`"
@@ -93,18 +94,18 @@ async def owner_callback(client, callback_query):
 
 @app.on_callback_query(filters.regex("back_home"))
 async def back_home(client, callback_query):
+    # DÜZƏLİŞ: Geri qayıdanda da sahibə linki düzgün qaldı
     buttons = [
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("🧑‍💻 sᴀʜɪʙ", url="https://t.me/kullaniciadidi")],
-        [InlineKeyboardButton("📢 ʙᴏᴛ ᴋᴀɴᴀʟı", url="https://t.me/ht_bots"), InlineKeyboardButton("🆘 ᴋöᴍəᴋ ǫʀᴜᴘᴜ", url="https://t.me/ht_bots_chat")],
-        [InlineKeyboardButton("🛠 sᴀʜɪʙ əᴍʀɪ", callback_data="owner_panel")]
+        [InlineKeyboardButton("👩🏻‍💻 sᴀʜɪʙə", url="https://t.me/kullaniciadidi"), InlineKeyboardButton("💬 söʜʙəᴛ ǫʀᴜᴘᴜ", url="https://t.me/sohbetqruprc")],
+        [InlineKeyboardButton("🛠 sᴀʜɪʙə əᴍʀɪ", callback_data="sahiba_panel")]
     ]
     await callback_query.edit_message_caption(
         caption="sᴀʟᴀᴍ ! ᴍəɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ᴛᴀɢ ᴠə ᴄʜᴀᴛʙᴏᴛ ʙᴏᴛᴜʏᴀᴍ.\nᴋᴏᴍᴜᴛʟᴀʀ üçüɴ /help ʏᴀᴢıɴ.",
         reply_markup=InlineKeyboardMarkup(buttons)
     )
 
-# --- YÖNLƏNDİRMƏ ---
+# --- YÖNLƏNDİRMƏ (QRUP + ŞƏXSİ) ---
 @app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
 async def broadcast_func(client, message):
     if not message.reply_to_message and len(message.command) < 2:
@@ -134,11 +135,9 @@ async def broadcast_func(client, message):
             continue
     await status_msg.edit(f"✅ Yönləndirmə tamamlandı: {success} yerə (Qrup+Şəxsi) göndərildi.")
 
-# --- HELP ---
+# --- HELP (DÜZƏLİŞ: ŞƏXSİDƏ VƏ QRUPDA İŞLƏYİR) ---
 @app.on_message(filters.command("help"))
 async def help_cmd(client, message):
-    if message.chat.type == ChatType.PRIVATE:
-        return await message.reply_text("❌ Bu komanda yalnız qruplar üçün nəzərdə tutulub!")
     help_text = (
         "🎮 **ƏYLƏNCƏLİ OYUNLAR:** /basket, /futbol, /dart, /slot, /dice\n\n"
         "📢 **TAĞ KOMANDALARI:**\n"
@@ -181,20 +180,16 @@ async def tag_handler(client, message):
             except:
                 pass
 
-@app.on_message(filters.command("tagstop"))
+@app.on_message(filters.command("tagstop") & filters.group)
 async def stop_tag(client, message):
-    if message.chat.type == ChatType.PRIVATE:
-        return await message.reply_text("❌ Bu komanda yalnız qruplar üçün nəzərdə tutulub!")
     if not await is_admin(client, message):
         return
     tag_process[message.chat.id] = False
     await message.reply_text("🛑 Tağ dayandırıldı.")
 
 # --- CHATBOT ---
-@app.on_message(filters.command("chatbot"))
+@app.on_message(filters.command("chatbot") & filters.group)
 async def chatbot_toggle(client, message):
-    if message.chat.type == ChatType.PRIVATE:
-        return await message.reply_text("❌ Bu komanda yalnız qruplar üçün nəzərdə tutulub!")
     if not await is_admin(client, message): return
     if len(message.command) < 2:
         return await message.reply_text("İstifadə: `/chatbot on` və ya `/chatbot off`")
@@ -230,36 +225,25 @@ async def chatbot_logic(client, message):
     if "bot" in message.text.lower():
         await message.reply_text(random.choice(CB_SOZLER))
 
-# --- OYUNLAR ---
+# --- DİGƏR ---
 @app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice"]))
 async def games(client, message):
+    # DÜZƏLİŞ: Oyunlar üçün də qrup qoruması (şəxsidə xəta versin istəyirdinsə)
     if message.chat.type == ChatType.PRIVATE:
         return await message.reply_text("❌ Bu komanda yalnız qruplar üçün nəzərdə tutulub!")
     dice_emoji = {"basket":"🏀","futbol":"⚽","dart":"🎯","slot":"🎰","dice":"🎲"}
     await client.send_dice(message.chat.id, emoji=dice_emoji[message.command[0]])
 
-# --- ID SİSTEMİ ---
+# --- ID SİSTEMİ (DÜZƏLİŞ: SIÇ/KOPYALANAN FORMATDA) ---
 @app.on_message(filters.command("id"))
 async def get_id(client, message):
-    # Botun şəxsisindədirsə
     if message.chat.type == ChatType.PRIVATE:
-        # Əgər /id @istifadeci yazıbsa
-        if len(message.command) > 1:
-            try:
-                user = await client.get_users(message.command[1])
-                return await message.reply_text(f"👤 {user.first_name} ID: `{user.id}`")
-            except:
-                return await message.reply_text("❌ İstifadəçi tapılmadı.")
-        # Sadəcə /id yazıbsa
         return await message.reply_text(f"👤 Sizin ID: `{message.from_user.id}`")
     
-    # Qrupdadırsa
     id_text = f"🆔 Qrup ID: `{message.chat.id}`\n"
     id_text += f"👤 Sizin ID: `{message.from_user.id}`"
-    
     if message.reply_to_message:
         id_text += f"\n👤 Reply ID: `{message.reply_to_message.from_user.id}`"
-        
     await message.reply_text(id_text)
 
 app.run()
