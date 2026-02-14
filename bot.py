@@ -10,7 +10,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 tag_process = {}; chat_status = {}
 
-# ----------------- 250+ BAYRAQLAR (Dəyişilmədi) -----------------
+# ----------------- 250+ BAYRAQLAR (TAM VƏ İXTİSARSIZ) -----------------
 BAYRAQLAR = [
     "🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹",
     "🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭",
@@ -27,7 +27,7 @@ BAYRAQLAR = [
     "🇾🇪","🇿🇲","🇿🇼","🏴󠁧󠁢󠁥󠁮󠁧󠁿","🏴󠁧󠁢󠁳󠁣󠁴󠁿","🏴󠁧󠁢󠁷󠁬󠁳󠁿"
 ]
 
-# ----------------- 200+ EMOJİLƏR (Dəyişilmədi) -----------------
+# ----------------- 200+ EMOJİLƏR (TAM VƏ İXTİSARSIZ) -----------------
 EMOJILER = [
     "🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁",
     "🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥",
@@ -42,25 +42,32 @@ EMOJILER = [
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
+# ----------------- ADMİN YOXLANIŞI (PROBLEM BURADA HƏLL OLUNDU) -----------------
 async def is_admin(client, message):
     if message.chat.type == "private":
         return True
+    
+    # 1. Anonim admin yoxlanışı (Qrup adından yazanlar üçün)
+    if message.sender_chat and message.sender_chat.id == message.chat.id:
+        return True
 
-    user_id = None
-
-    if message.from_user:
-        user_id = message.from_user.id
-    elif message.sender_chat:
-        user_id = message.sender_chat.id
-    else:
+    # 2. İstifadəçi ID-sini tapmaq
+    user_id = message.from_user.id if message.from_user else None
+    if not user_id:
         return False
 
     try:
+        # 3. Birbaşa Telegram-dan statusu soruşuruq (Cache-ə güvənmirik)
         member = await client.get_chat_member(message.chat.id, user_id)
         return member.status in ("administrator", "creator")
-    except:
+    except Exception:
         return False
-    me = await client.get_me() # Bura mütləq await olmalı idi
+
+# ----------------- KOMANDALAR -----------------
+
+@app.on_message(filters.command("start"))
+async def start_cmd(client, message):
+    me = await client.get_me()
     text = "sᴀʟᴀᴍ ! ᴍəɴ ʜəᴍ ᴅᴀɴışᴀɴ, ʜəᴍ ᴅə ᴍüxᴛəʟɪғ\nᴛᴀɢ əᴍʀʟəʀɪ ᴏʟᴀɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ʙᴏᴛᴀᴍ.\nᴋᴏᴍᴜᴛʟᴀʀɪ öʏʀəɴᴍəᴋ üçüɴ /help ʏᴀᴢᴍᴀğıɴɪᴢ\nᴋɪғᴀʏəᴛᴅɪʀ."
     markup = InlineKeyboardMarkup([
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{me.username}?startgroup=true")],
@@ -84,24 +91,30 @@ async def reload_cmd(client, message):
 async def tag_handler(client, message):
     if not await is_admin(client, message):
         return await message.reply_text("❌ Bu komandanı yalnız adminlər istifadə edə bilər!")
+    
     chat_id = message.chat.id
     tag_process[chat_id] = True
     cmd = message.command[0].lower()
-    user_msg = " ".join(message.command[1:])
+    user_msg = " ".join(message.command[1:]) if len(message.command) > 1 else ""
+    
     members = []
     async for m in client.get_chat_members(chat_id):
-        if not m.user.is_bot and not m.user.is_deleted:
+        if m.user and not m.user.is_bot and not m.user.is_deleted:
             members.append(m.user)
+    
     for u in members:
-        if not tag_process.get(chat_id, True): break
-        if cmd == "flagtag": t = f"{user_msg} [{random.choice(BAYRAQLAR)}](tg://user?id={u.id})"
-        elif cmd == "utag": t = f"{user_msg} [{random.choice(EMOJILER)}](tg://user?id={u.id})"
+        if not tag_process.get(chat_id, False): break
+        
+        if cmd == "flagtag": t = f"{user_msg} {random.choice(BAYRAQLAR)} [{u.first_name}](tg://user?id={u.id})"
+        elif cmd == "utag": t = f"{user_msg} {random.choice(EMOJILER)} [{u.first_name}](tg://user?id={u.id})"
         elif cmd == "tektag": t = f"{user_msg} [{u.first_name}](tg://user?id={u.id})"
-        else: t = f"{user_msg} [💎](tg://user?id={u.id})"
+        else: t = f"{user_msg} 💎 [{u.first_name}](tg://user?id={u.id})"
+        
         try:
             await client.send_message(chat_id, t)
-            await asyncio.sleep(2.0)
+            await asyncio.sleep(2.5) # Spam filtri üçün
         except: pass
+    
     tag_process[chat_id] = False
 
 @app.on_message(filters.command("stop") & filters.group)
@@ -122,15 +135,14 @@ async def cb_toggle(client, message):
         return await message.reply_text("❌ Chatbotu yalnız adminlər idarə edə bilər!")
     if len(message.command) > 1:
         choice = message.command[1].lower()
-        if choice == "on": chat_status[message.chat.id] = True
-        elif choice == "off": chat_status[message.chat.id] = False
+        chat_status[message.chat.id] = (choice == "on")
     status = chat_status.get(message.chat.id, True)
     await message.reply_text(f"✅ Chatbot hazırda: {'Aktiv' if status else 'Deaktiv'}")
 
 @app.on_message(filters.group & ~filters.bot)
 async def chatbot_logic(client, message):
-    chat_id = message.chat.id
     if not message.text or message.text.startswith('/'): return
+    chat_id = message.chat.id
     try:
         conn = get_db_connection(); cur = conn.cursor()
         if chat_status.get(chat_id, True) and random.random() < 0.20:
