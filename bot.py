@@ -10,11 +10,11 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 tag_process = {}; chat_status = {}
 
-# ----------------- 250+ BAYRAQLAR (TAM SİYAHI - TOXUNULMADI) -----------------
-FLAGS = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧🇶","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬🇶","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮🇶","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲🇶","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼","🏴󠁧󠁢󠁥󠁮󠁧󠁿","🏴󠁧󠁢󠁳󠁣󠁴󠁿","🏴󠁧󠁢󠁷󠁬󠁳󠁿"]
+# ----------------- 250+ BAYRAQLAR (HAMSİ BURDADIR) -----------------
+BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧🇶","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬🇶","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮🇶","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲🇶","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼","🏴󠁧󠁢󠁥󠁮󠁧󠁿","🏴󠁧󠁢󠁳󠁣󠁴󠁿","🏴󠁧󠁢󠁷󠁬󠁳󠁿"]
 
-# ----------------- 200+ EMOJİLƏR (TAM SİYAHI - TOXUNULMADI) -----------------
-FANCY_EMOJIS = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉","🎐","🎌","🚩","🏆","🎖️","🎫","💌","💍","👓","🎒","👒","👟","👗","👑","💄","🧤","🧶","🧪","🧬"," telescope ","📡","💡","🕯️","📚","📕","📜","💵","💸","💳","⚖️","🗝️","🔓","🔨","🛡️","🏹","⚔️","💊","🩹","🩸","🧺","🧼","🧽","🪒","🚿","🛁","🧻","🧱","⛓️","🧨","🧧","🎀","🎊","🎐","🎋","🎎","🎏","🧠","🦷","🦴","👀","👅","👄","👂","👃","👣","👁️‍🗨️","🗨️","🧣","🧥","👒","👜","👛","👗","👘","👖","👕","👞","👟"]
+# ----------------- 200+ EMOJİLƏR (HAMSİ BURDADIR) -----------------
+EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉","🎐","🎌","🚩","🏆","🎖️","🎫","💌","💍","Glasses","🎒","Hat","👟","👗","👑","Lipstick","Gloves","🧶","🧪","🧬","🔭","📡","💡","🕯️","📚","📕","📜","💵","💸","💳","⚖️","🗝️","🔓","🔨","🛡️","🏹","⚔️","💊","🩹","🩸","🧺","🧼","🧽","🪒","🚿","🛁","🧻","🧱","⛓️","🧨","🧧","🎀","🎊","🎐","🎋","🎎","🎏","🧠","齒","🦴","👀","👅","👄","👂","👃","👣","👁️‍🗨️","🗨️","🧣","🧥","👒","👜","👛","👗","👘","👖","👕","👞","👟"]
 
 def get_db_connection(): return psycopg2.connect(DATABASE_URL, sslmode='require')
 
@@ -27,70 +27,67 @@ async def is_admin(client, message):
 
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message):
-    me = await client.get_me()
-    text = "sᴀʟᴀᴍ ! ᴍəɴ ʜəᴍ ᴅᴀɴışᴀɴ, ʜəᴍ ᴅə ᴍüxᴛəʟɪғ ᴛᴀɢ əᴍʀʟəʀɪ ᴏʟᴀɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ʙᴏᴛᴀᴍ."
-    markup = InlineKeyboardMarkup([[InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{me.username}?startgroup=true")],[InlineKeyboardButton("👩🏻‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 söʜʙəᴛ ǫʀᴜᴘᴜ", url="https://t.me/sohbetqruprc")]])
+    text = "sᴀʟᴀᴍ ! ᴍəɴ ʜəᴍ ᴅᴀɴışᴀɴ, ʜəᴍ ᴅə ᴍüxᴛəʟɪғ\nᴛᴀɢ əᴍʀʟəʀɪ ᴏʟᴀɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ʙᴏᴛᴀᴍ.\nᴋᴏᴍᴜᴛʟᴀʀɪ öʏʀəɴᴍəᴋ üçüɴ /help ʏᴀᴢᴍᴀğıɴɪᴢ\nᴋɪғᴀʏəᴛᴅɪʀ."
+    markup = InlineKeyboardMarkup([[InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{app.get_me().username}?startgroup=true")],[InlineKeyboardButton("👩🏻‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 söʜʙəᴛ ǫʀᴜᴘᴜ", url="https://t.me/sohbetqruprc")]])
     await message.reply_text(text, reply_markup=markup)
+
+@app.on_message(filters.command("help"))
+async def help_cmd(client, message):
+    text = "🎮 əʏʟəɴᴄəʟɪ ᴏʏᴜɴʟᴀʀ:\n\n🏀 /basket - ʙᴀsᴋᴇᴛʙᴏʟ\n⚽ /futbol - ғᴜᴛʙᴏʟ\n🎯 /dart - ᴅᴀʀᴛ\n🎰 /slot - sʟᴏᴛ\n🎲 /dice - ᴢᴀʀ\n\n📢 ᴛᴀğ ᴋᴏᴍᴀɴᴅᴀʟᴀʀɪ:\n🔹 /tag - ɴᴏʀᴍᴀʟ ᴛᴀğ\n🔹 /utag - ᴇᴍᴏᴊɪ ɪʟə ᴛᴀğ\n🔹 /flagtag - ʙᴀʏʀᴀǫʟᴀ ᴛᴀğ\n🔹 /tektag - ᴛəᴋ-ᴛəᴋ ᴛᴀğ\n\n🛑 ᴅᴀʏᴀɴᴅɪʀᴍᴀǫ üçüɴ: /stop\n💬 ᴄʜᴀᴛʙᴏᴛ: /chatbot on/off"
+    await message.reply_text(text)
+
+@app.on_message(filters.command("reload") & filters.group)
+async def reload_cmd(client, message):
+    if not await is_admin(client, message): return await message.reply_text("❌ Bu komandanı yalnız adminlər istifadə edə bilər!")
+    tag_process[message.chat.id] = False
+    await message.reply_text("🔄 **Sistem yeniləndi!**")
 
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]) & filters.group)
 async def tag_handler(client, message):
     if not await is_admin(client, message): return await message.reply_text("❌ Bu komandanı yalnız adminlər istifadə edə bilər!")
-    chat_id = message.chat.id; tag_process[chat_id] = True; cmd = message.command[0].lower(); user_msg = " ".join(message.command[1:]) if len(message.command) > 1 else ""
-    markup = InlineKeyboardMarkup([[InlineKeyboardButton("👩🏻‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 söʜʙəᴛ ǫʀᴜᴘᴜ", url="https://t.me/sohbetqruprc")]])
+    chat_id = message.chat.id; tag_process[chat_id] = True; cmd = message.command[0].lower(); user_msg = " ".join(message.command[1:])
     members = []
-    async for member in client.get_chat_members(chat_id):
-        if not member.user.is_bot and not member.user.is_deleted: members.append(member.user)
-    for user in members:
+    async for m in client.get_chat_members(chat_id):
+        if not m.user.is_bot and not m.user.is_deleted: members.append(m.user)
+    for u in members:
         if not tag_process.get(chat_id, True): break
-        if cmd == "flagtag": tag_text = f"{user_msg} [{random.choice(FLAGS)}](tg://user?id={user.id})"
-        elif cmd == "utag": tag_text = f"{user_msg} [{random.choice(FANCY_EMOJIS)}](tg://user?id={user.id})"
-        elif cmd == "tektag": tag_text = f"{user_msg} [{user.first_name}](tg://user?id={user.id})"
-        else: tag_text = f"{user_msg} [💎](tg://user?id={user.id})"
-        try:
-            await client.send_message(chat_id, tag_text, reply_markup=markup)
-            await asyncio.sleep(2.0)
+        if cmd == "flagtag": t = f"{user_msg} [{random.choice(BAYRAQLAR)}](tg://user?id={u.id})"
+        elif cmd == "utag": t = f"{user_msg} [{random.choice(EMOJILER)}](tg://user?id={u.id})"
+        elif cmd == "tektag": t = f"{user_msg} [{u.first_name}](tg://user?id={u.id})"
+        else: t = f"{user_msg} [💎](tg://user?id={u.id})"
+        try: await client.send_message(chat_id, t); await asyncio.sleep(2.0)
         except: pass
     tag_process[chat_id] = False
 
-@app.on_message(filters.command("tagstop") & filters.group)
-async def tag_stop(client, message):
-    if not await is_admin(client, message): return
-    tag_process[message.chat.id] = False
-    await message.reply_text("🛑 Tağ prosesi dayandırıldı!")
+@app.on_message(filters.command("stop") & filters.group)
+async def stop_cmd(client, message):
+    if not await is_admin(client, message): return await message.reply_text("❌ Bu komandanı yalnız adminlər istifadə edə bilər!")
+    tag_process[message.chat.id] = False; await message.reply_text("🛑 Tağ prosesi dayandırıldı!")
+
+@app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice"]))
+async def games_cmd(client, message):
+    e = {"basket": "🏀", "futbol": "⚽", "dart": "🎯", "slot": "🎰", "dice": "🎲"}
+    await client.send_dice(message.chat.id, emoji=e[message.command[0]])
 
 @app.on_message(filters.command("chatbot") & filters.group)
-async def chatbot_toggle(client, message):
-    if not await is_admin(client, message): return
-    if len(message.command) < 2: return
-    chat_status[message.chat.id] = (message.command[1].lower() == "on")
-    await message.reply_text(f"✅ Chatbot {'aktiv' if chat_status[message.chat.id] else 'deaktiv'} edildi.")
+async def cb_toggle(client, message):
+    if not await is_admin(client, message): return await message.reply_text("❌ Bu komandanı yalnız adminlər istifadə edə bilər!")
+    if len(message.command) > 1: chat_status[message.chat.id] = (message.command[1].lower() == "on")
+    await message.reply_text(f"✅ Chatbot {'aktiv' if chat_status.get(message.chat.id, True) else 'deaktiv'} edildi.")
 
 @app.on_message(filters.group & ~filters.bot)
 async def chatbot_logic(client, message):
     chat_id = message.chat.id
     try:
-        if message.text or message.sticker or message.voice:
-            conn = get_db_connection(); cur = conn.cursor()
-            m_type = 'text' if message.text else 'sticker' if message.sticker else 'voice'
-            file_id = message.sticker.file_id if message.sticker else message.voice.file_id if message.voice else None
-            cur.execute("INSERT INTO brain (msg_type, content, file_id, chat_id, user_id, first_name) VALUES (%s,%s,%s,%s,%s,%s)", (m_type, message.text, file_id, chat_id, message.from_user.id, message.from_user.first_name))
-            conn.commit(); cur.close(); conn.close()
+        conn = get_db_connection(); cur = conn.cursor()
+        if message.text and not message.text.startswith('/'):
+            if chat_status.get(chat_id, True) and random.random() < 0.20:
+                cur.execute("SELECT content FROM brain WHERE chat_id = %s ORDER BY RANDOM() LIMIT 1", (chat_id,))
+                res = cur.fetchone()
+                if res: await message.reply_text(res[0])
+            cur.execute("INSERT INTO brain (content, chat_id) VALUES (%s, %s)", (message.text, chat_id))
+            conn.commit()
+        cur.close(); conn.close()
     except: pass
-    if chat_status.get(chat_id, True) and random.random() < 0.20 and message.text and not message.text.startswith('/'):
-        try:
-            conn = get_db_connection(); cur = conn.cursor()
-            cur.execute("SELECT msg_type, content, file_id FROM brain WHERE chat_id = %s ORDER BY RANDOM() LIMIT 1", (chat_id,))
-            res = cur.fetchone()
-            if res:
-                if res[0] == 'text': await message.reply_text(res[1])
-                elif res[0] == 'sticker': await client.send_sticker(chat_id, res[2])
-                elif res[0] == 'voice': await client.send_voice(chat_id, res[2])
-            cur.close(); conn.close()
-        except: pass
-
-@app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice"]))
-async def games_cmd(client, message):
-    emoji_map = {"basket": "🏀", "futbol": "⚽", "dart": "🎯", "slot": "🎰", "dice": "🎲"}
-    await client.send_dice(message.chat.id, emoji=emoji_map[message.command[0]])
 
 app.run()
