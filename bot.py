@@ -1,6 +1,7 @@
 import os, asyncio, random, psycopg2
 from pyrogram import Client, filters
 from pyrogram.enums import ChatMemberStatus
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # Ayarlar
 API_ID = os.getenv("API_ID")
@@ -9,70 +10,155 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
 OWNER_ID = 6241071228  # Sənin ID-n
 
-app = Client("my_bot", API_ID, API_HASH, bot_token=BOT_TOKEN)
+# Bura öz şəkil linkini yapışdıra bilərsən:
+SAKIL_LINKI = "https://i.postimg.cc/mDTTvtxS/20260214-163714.jpg" 
+
+app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 tag_process = {}; chat_status = {}
 
-# Qısaldılmış Resurslar
-BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧🇶","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬🇶","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮🇶","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲🇶","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
-EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉","🎐","🎌","🚩","🏆","🎖️","🎫","💌","💍","👓","🎒","👒","👟","👗","👑","💄","🧤","🧶","🧪","🧬"," telescope","📡","💡","🕯️","📚","📕","📜","💵","💸","💳","⚖️","🗝️","🔓","🔨","🛡️","🏹","⚔️","💊","🩹","🩸","🧺","🧼","🧽","🪒","🚿","🛁","🧻","🧱","⛓️","🧨","🧧","🎀","🎊","🎐","🎋","🎎","🎏","🧠","🦷","🦴","👀","👅","👄","👂","👃","👣"]
+# ----------------- 250+ BAYRAQLAR (TAM) -----------------
+BAYRAQLAR = [
+    "🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹",
+    "🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭",
+    "🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧🇶","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷",
+    "🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬🇶","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮",
+    "🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾",
+    "🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮🇶","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰",
+    "🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲🇶",
+    "🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮",
+    "🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴",
+    "🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸",
+    "🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬",
+    "🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭",
+    "🇾🇪","🇿🇲","🇿🇼","🏴󠁧󠁢󠁥󠁮󠁧󠁿","🏴󠁧󠁢󠁳󠁣󠁴󠁿","🏴󠁧󠁢󠁷󠁬󠁳󠁿"
+]
 
-def get_db(): return psycopg2.connect(DATABASE_URL, sslmode='require')
+# ----------------- 200+ EMOJİLƏR (TAM) -----------------
+EMOJILER = [
+    "🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁",
+    "🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥",
+    "🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹",
+    "🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉","🎐","🎌",
+    "🚩","🏆","🎖️","🎫","💌","💍","👓","🎒","👒","👟","👗","👑","💄","🧤","🧶","🧪","🧬","🔭","📡","💡","🕯️",
+    "📚","📕","📜","💵","💸","💳","⚖️","🗝️","🔓","🔨","🛡️","🏹","⚔️","💊","🩹","🩸","🧺","🧼","🧽","🪒","🚿",
+    "🛁","🧻","🧱","⛓️","🧨","🧧","🎀","🎊","🎐","🎋","🎎","🎏","🧠","🦷","🦴","👀","👅","👄","👂","👃","👣",
+    "👁️‍🗨️","🗨️","🧣","🧥","👒","👜","👛","👗","👘","👖","👕","👞","👟"
+]
 
-async def is_admin(c, m):
-    if m.chat.type.name == "PRIVATE" or (m.from_user and m.from_user.id == OWNER_ID): return True
-    if m.sender_chat and m.sender_chat.id == m.chat.id: return True
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL, sslmode='require')
+
+async def is_admin(client, message):
+    if message.chat.type.name == "PRIVATE": return True
+    if message.from_user and message.from_user.id == OWNER_ID: return True
+    if message.sender_chat and message.sender_chat.id == message.chat.id: return True
     try:
-        status = (await c.get_chat_member(m.chat.id, m.from_user.id)).status
-        return status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
+        member = await client.get_chat_member(message.chat.id, message.from_user.id)
+        return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
     except: return False
 
+# ----------------- KOMANDALAR -----------------
+
 @app.on_message(filters.command("start"))
-async def start(c, m):
-    await m.reply_text(f"sᴀʟᴀᴍ! ᴛᴀɢ ᴠə əʏʟəɴᴄə ʙᴏᴛᴜʏᴀᴍ.\nᴋöᴍəᴋ üçüɴ /help ʏᴀᴢ.", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("➕ əʟᴀᴠə ᴇᴛ", url=f"https://t.me/{(await c.get_me()).username}?startgroup=true")]]))
+async def start_cmd(client, message):
+    # START MESAJI - FONT YENİLƏNDİ
+    text = (
+        "sᴀʟᴀᴍ ! ᴍəɴ ʜəᴍ ᴅᴀɴışᴀɴ, ʜəᴍ ᴅə ᴍüxᴛəʟɪғ\n"
+        "ᴛᴀɢ əᴍʀʟəʀɪ ᴏʟᴀɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ʙᴏᴛᴀᴍ.\n"
+        "ᴋᴏᴍᴜᴛʟᴀʀɪ öʏʀəɴᴍəᴋ üçüɴ /help ʏᴀᴢᴍᴀğıɴɪᴢ\n"
+        "ᴋɪғᴀʏəᴛᴅɪʀ."
+    )
+    markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
+        [InlineKeyboardButton("👩🏻‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 söʜʙəᴛ ǫʀᴜᴘᴜ", url="https://t.me/sohbetqruprc")]
+    ])
+    try:
+        await client.send_photo(message.chat.id, photo=SAKIL_LINKI, caption=text, reply_markup=markup)
+    except:
+        await message.reply_text(text, reply_markup=markup)
 
 @app.on_message(filters.command("help"))
-async def help(c, m):
-    await m.reply_text("📢 /tag, /utag, /flagtag, /tektag\n🎮 /basket, /futbol, /dart, /slot, /dice\n🛑 /stop | 💬 /chatbot on/off")
+async def help_cmd(client, message):
+    # HELP MESAJI - FONT YENİLƏNDİ
+    text = (
+        "🎮 əʏʟəɴᴄəʟɪ ᴏʏᴜɴʟᴀʀ:\n\n"
+        "🏀 /basket - ʙᴀsᴋᴇᴛʙᴏʟ\n"
+        "⚽ /futbol - ғᴜᴛʙᴏʟ\n"
+        "🎯 /dart - ᴅᴀʀᴛ\n"
+        "🎰 /slot - sʟᴏᴛ\n"
+        "🎲 /dice - ᴢᴀʀ\n\n"
+        "📢 ᴛᴀğ ᴋᴏᴍᴀɴᴅᴀʟᴀʀɪ:\n"
+        "🔹 /tag - ɴᴏʀᴍᴀʟ ᴛᴀğ\n"
+        "🔹 /utag - ᴇᴍᴏᴊɪ ɪʟə ᴛᴀğ\n"
+        "🔹 /flagtag - ʙᴀʏʀᴀǫʟᴀ ᴛᴀğ\n"
+        "🔹 /tektag - ᴛəᴋ-ᴛəᴋ ᴛᴀğ\n\n"
+        "🛑 ᴅᴀʏᴀɴᴅɪʀᴍᴀǫ üçüɴ: /stop\n"
+        "💬 ᴄʜᴀᴛʙᴏᴛ: /chatbot on/off"
+    )
+    await message.reply_text(text)
+
+@app.on_message(filters.command("reload") & filters.group)
+async def reload_cmd(client, message):
+    if not await is_admin(client, message): return await message.reply_text("❌ Admin deyilsən!")
+    tag_process[message.chat.id] = False
+    await message.reply_text("🔄 Sistem yeniləndi!")
 
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]) & filters.group)
-async def tagger(c, m):
-    if not await is_admin(c, m): return await m.reply("❌ Admin deyilsən!")
-    cid = m.chat.id
-    tag_process[cid] = True
-    cmd, txt = m.command[0], " ".join(m.command[1:])
-    async for member in c.get_chat_members(cid):
-        if not tag_process.get(cid) or member.user.is_bot: continue
-        if cmd == "flagtag": t = f"{txt} {random.choice(BAYRAQLAR)}"
-        elif cmd == "utag": t = f"{txt} {random.choice(EMOJILER)}"
-        else: t = txt
-        await c.send_message(cid, f"{t} [{member.user.first_name}](tg://user?id={member.user.id})")
-        await asyncio.sleep(2)
-    tag_process[cid] = False
+async def tag_handler(client, message):
+    if not await is_admin(client, message): return await message.reply_text("❌ Admin deyilsən!")
+    chat_id = message.chat.id
+    tag_process[chat_id] = True
+    cmd = message.command[0].lower()
+    user_msg = " ".join(message.command[1:]) if len(message.command) > 1 else ""
+    
+    members = []
+    async for m in client.get_chat_members(chat_id):
+        if m.user and not m.user.is_bot and not m.user.is_deleted:
+            members.append(m.user)
+    
+    for u in members:
+        if not tag_process.get(chat_id, False): break
+        if cmd == "flagtag": t = f"{user_msg} {random.choice(BAYRAQLAR)} [{u.first_name}](tg://user?id={u.id})"
+        elif cmd == "utag": t = f"{user_msg} {random.choice(EMOJILER)} [{u.first_name}](tg://user?id={u.id})"
+        elif cmd == "tektag": t = f"{user_msg} [{u.first_name}](tg://user?id={u.id})"
+        else: t = f"{user_msg} 💎 [{u.first_name}](tg://user?id={u.id})"
+        try:
+            await client.send_message(chat_id, t)
+            await asyncio.sleep(2.5)
+        except: pass
+    tag_process[chat_id] = False
 
 @app.on_message(filters.command("stop") & filters.group)
-async def stop(c, m):
-    if await is_admin(c, m): tag_process[m.chat.id] = False; await m.reply("🛑 Dayandı.")
+async def stop_cmd(client, message):
+    if not await is_admin(client, message): return await message.reply_text("❌ Admin deyilsən!")
+    tag_process[message.chat.id] = False
+    await message.reply_text("🛑 Tağ prosesi dayandırıldı!")
 
 @app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice"]))
-async def games(c, m):
-    await c.send_dice(m.chat.id, emoji={"basket":"🏀","futbol":"⚽","dart":"🎯","slot":"🎰","dice":"🎲"}[m.command[0]])
+async def games_cmd(client, message):
+    e = {"basket": "🏀", "futbol": "⚽", "dart": "🎯", "slot": "🎰", "dice": "🎲"}
+    await client.send_dice(message.chat.id, emoji=e[message.command[0]])
 
 @app.on_message(filters.command("chatbot") & filters.group)
-async def chatbot(c, m):
-    if await is_admin(c, m) and len(m.command) > 1:
-        chat_status[m.chat.id] = (m.command[1] == "on")
-        await m.reply(f"✅ Chatbot: {m.command[1]}")
+async def cb_toggle(client, message):
+    if not await is_admin(client, message): return await message.reply_text("❌ Admin deyilsən!")
+    if len(message.command) > 1:
+        choice = message.command[1].lower()
+        chat_status[message.chat.id] = (choice == "on")
+    status = chat_status.get(message.chat.id, True)
+    await message.reply_text(f"✅ Chatbot hazırda: {'Aktiv' if status else 'Deaktiv'}")
 
 @app.on_message(filters.group & ~filters.bot)
-async def cb_logic(c, m):
-    if not m.text or m.text.startswith('/'): return
+async def chatbot_logic(client, message):
+    if not message.text or message.text.startswith('/'): return
+    chat_id = message.chat.id
     try:
-        conn = get_db(); cur = conn.cursor()
-        if chat_status.get(m.chat.id, True) and random.random() < 0.2:
-            cur.execute("SELECT content FROM brain WHERE chat_id=%s ORDER BY RANDOM() LIMIT 1", (m.chat.id,))
+        conn = get_db_connection(); cur = conn.cursor()
+        if chat_status.get(chat_id, True) and random.random() < 0.20:
+            cur.execute("SELECT content FROM brain WHERE chat_id = %s ORDER BY RANDOM() LIMIT 1", (chat_id,))
             res = cur.fetchone()
-            if res: await m.reply(res[0])
-        cur.execute("INSERT INTO brain (content, chat_id) VALUES (%s, %s)", (m.text, m.chat.id))
+            if res: await message.reply_text(res[0])
+        cur.execute("INSERT INTO brain (content, chat_id) VALUES (%s, %s)", (message.text, chat_id))
         conn.commit(); cur.close(); conn.close()
     except: pass
 
