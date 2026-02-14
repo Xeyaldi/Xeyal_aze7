@@ -42,24 +42,25 @@ EMOJILER = [
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
-# ----------------- ADMİN YOXLANIŞI (PROBLEM BURADA HƏLL OLUNDU) -----------------
+# ----------------- ADMİN YOXLANIŞI (DÜZƏLDİLDİ) -----------------
 async def is_admin(client, message):
     if message.chat.type == "private":
         return True
     
-    # 1. Anonim admin yoxlanışı (Qrup adından yazanlar üçün)
+    # Anonim admin yoxlanışı (Qrup adından yazanlar üçün)
     if message.sender_chat and message.sender_chat.id == message.chat.id:
         return True
 
-    # 2. İstifadəçi ID-sini tapmaq
     user_id = message.from_user.id if message.from_user else None
     if not user_id:
         return False
 
     try:
-        # 3. Birbaşa Telegram-dan statusu soruşuruq (Cache-ə güvənmirik)
+        # Birbaşa Telegram API-dən ən son statusu çəkirik
         member = await client.get_chat_member(message.chat.id, user_id)
-        return member.status in ("administrator", "creator")
+        if member.status in ("administrator", "creator"):
+            return True
+        return False
     except Exception:
         return False
 
@@ -89,6 +90,7 @@ async def reload_cmd(client, message):
 
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]) & filters.group)
 async def tag_handler(client, message):
+    # CANLI ADMİN YOXLANIŞI
     if not await is_admin(client, message):
         return await message.reply_text("❌ Bu komandanı yalnız adminlər istifadə edə bilər!")
     
@@ -112,7 +114,7 @@ async def tag_handler(client, message):
         
         try:
             await client.send_message(chat_id, t)
-            await asyncio.sleep(2.5) # Spam filtri üçün
+            await asyncio.sleep(2.5) 
         except: pass
     
     tag_process[chat_id] = False
