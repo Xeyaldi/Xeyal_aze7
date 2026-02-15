@@ -1,113 +1,135 @@
-import os, asyncio, requests, urllib.parse, time
+import os, asyncio, requests, urllib.parse, random
 from pyrogram import filters
-from pyrogram.types import BotCommand
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.enums import ChatMemberStatus, ChatType
+
+# --- YARDIMÇI FUNKSİYA: ADMİN YOXLAMA ---
+async def check_admin(client, message, owners):
+    if message.chat.type == ChatType.PRIVATE: return True
+    if message.from_user and message.from_user.id in owners: return True
+    try:
+        member = await client.get_chat_member(message.chat.id, message.from_user.id)
+        return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
+    except: return False
 
 def init_plugins(app, get_db_connection):
-    # --- 14. 🕵️ KİM SİLDİ? (LOG SİSTEMİ) ---
-    @app.on_deleted_messages()
-    async def deleted_log(c, m):
-        for msg in m:
-            if msg.text:
-                print(f"🗑 Silinən Mesaj: {msg.text} (ID: {msg.from_user.id if msg.from_user else 'Bilinmir'})")
+    # Sənin təyin etdiyin sahibələr siyahısı
+    OWNERS = [6241071228, 7592728364, 8024893255]
+    ETIRAF_QRUPU = "sohbetqruprc"
 
-    # --- 15. 📊 Qrup Analitika (Mesaj Sayı) ---
-    @app.on_message(filters.group & ~filters.bot, group=4)
-    async def count_messages(c, m):
-        conn = get_db_connection(); cur = conn.cursor()
-        cur.execute("INSERT INTO user_stats (user_id, msg_count) VALUES (%s, 1) ON CONFLICT (user_id) DO UPDATE SET msg_count = user_stats.msg_count + 1", (m.from_user.id,))
-        conn.commit(); cur.close(); conn.close()
+    # --- 1. HELP (KÖMƏK MENYUSU) ---
+    @app.on_message(filters.command("help"))
+    async def help_cmd(client, message):
+        help_text = (
+            "📚 **ʙᴏᴛᴜɴ ᴋᴏᴍᴀɴᴅᴀʟᴀʀı**\n\n"
+            "📢 **ᴛᴀɢ ᴋᴏᴍᴀɴᴅᴀʟᴀʀı:**\n"
+            "• `/tag`, `/utag`, `/flagtag`, `/tektag`, `/tagstop`\n\n"
+            "🎮 **ᴏʏᴜɴʟᴀʀ:** `/basket`, `/futbol`, `/dart`, `/slot`, `/dice`\n\n"
+            "🌍 **ᴍəʟᴜᴍᴀᴛ:**\n"
+            "• `/hava [şəhər]`, `/valyuta`, `/wiki [mövzu]`, `/namaz [şəhər]`\n"
+            "• `/tercume [dil]` - (Reply edərək)\n\n"
+            "🤫 **ᴇᴛɪʀᴀғ:** `/etiraf` və ya `/acetiraf` [mesaj]\n\n"
+            "🛡 **ᴀᴅᴍɪɴ:** `/purge` (Reply), `/id`, `/ping`"
+        )
+        await message.reply_text(help_text)
 
-    @app.on_message(filters.command("top"))
-    async def top_users(c, m):
-        conn = get_db_connection(); cur = conn.cursor()
-        cur.execute("SELECT user_id, msg_count FROM user_stats ORDER BY msg_count DESC LIMIT 5")
-        res = cur.fetchall(); cur.close(); conn.close()
-        text = "🏆 **Qrupun Ən Aktivləri:**\n\n"
-        for i, r in enumerate(res, 1): text += f"{i}. ID: `{r[0]}` — {r[1]} mesaj\n"
-        await m.reply_text(text)
+    # --- 2. ETİRAF SİSTEMİ (SAHİBƏ TƏSDİQLİ) ---
+    @app.on_message(filters.command(["etiraf", "acetiraf"]))
+    async def etiraflar(client, message):
+        if len(message.command) < 2: 
+            return await message.reply_text("💬 Etirafınızı yazın. Məsələn: `/etiraf salam`")
+        
+        txt = message.text.split(None, 1)[1]
+        is_anon = message.command[0] == "etiraf"
+        sender_info = "Anonim" if is_anon else f"{message.from_user.first_name} ({message.from_user.id})"
+        
+        check_buttons = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("✅ Təsdiqlə", callback_data=f"accept_etiraf|{message.from_user.id}"),
+                InlineKeyboardButton("❌ Rədd et", callback_data="reject_etiraf")
+            ]
+        ])
+        
+        count = 0
+        for owner_id in OWNERS:
+            try:
+                await client.send_message(
+                    owner_id, 
+                    f"📩 **Yeni Etiraf Təsdiq Gözləyir!**\n\n👤 **Kimdən:** {sender_info}\n💬 **Mesaj:** `{txt}`",
+                    reply_markup=check_buttons
+                )
+                count += 1
+            except: continue
+        
+        if count > 0:
+            await message.reply_text("✅ Etirafınız təsdiq üçün sahibələrə göndərildi.")
+        else:
+            await message.reply_text("❌ Xəta: Sahibələr botu başlatmayıb.")
 
-    # --- 16. 🕒 Xatırladıcı (REMINDER) ---
-    @app.on_message(filters.command("xatirlat"))
-    async def remind_me(c, m):
-        if len(m.command) < 3: return await m.reply_text("ℹ️ `/xatirlat 10m Çörək al` formatında yazın.")
-        sure = m.command[1]
-        text = m.text.split(None, 2)[2]
-        await m.reply_text(f"✅ **Oldu!** {sure} sonra sizə bildirəcəm.")
-        seconds = int(sure[:-1]) * 60 if 'm' in sure else int(sure[:-1]) * 3600
-        await asyncio.sleep(seconds)
-        await m.reply_text(f"🔔 **XATIRLATMA!**\n\n📌: {text}", reply_to_message_id=m.id)
+    # --- 3. HAVA DURUMU ---
+    @app.on_message(filters.command("hava"))
+    async def get_weather(client, message):
+        if len(message.command) < 2: return await message.reply_text("🏙 Şəhər adı yazın.")
+        city = message.command[1]
+        try:
+            url = f"http://api.openweathermap.org/data/2.5/weather?q={urllib.parse.quote(city)}&appid=b6907d289e10d714a6e88b30761fae22&units=metric&lang=az"
+            r = requests.get(url).json()
+            await message.reply_text(f"🌤 **{city.capitalize()}**\n🌡 Temperatur: {r['main']['temp']}°C\n☁️ Vəziyyət: {r['weather'][0]['description']}")
+        except: await message.reply_text("❌ Şəhər tapılmadı.")
 
-    # --- 17. 🎲 Qumar (🎰 SLOT) ---
-    @app.on_message(filters.command("slot"))
-    async def slot_machine(c, m):
-        res = await c.send_dice(m.chat.id, emoji="🎰")
-        if res.dice.value in [1, 22, 43, 64]: await m.reply_text("🎊 **TEBRİKLER! Qazandınız!**")
+    # --- 4. VALYUTA ---
+    @app.on_message(filters.command("valyuta"))
+    async def get_valyuta(client, message):
+        try:
+            r = requests.get("https://api.exchangerate-api.com/v4/latest/AZN").json()
+            text = f"💰 **Məzənnə (AZN qarşı):**\n\n🇺🇸 USD: `{1/r['rates']['USD']:.2f}`\n🇪🇺 EUR: `{1/r['rates']['EUR']:.2f}`\n🇹🇷 TRY: `{1/r['rates']['TRY']:.2f}`\n🇷🇺 RUB: `{1/r['rates']['RUB']:.2f}`"
+            await message.reply_text(text)
+        except: await message.reply_text("❌ Məzənnə məlumatı alınmadı.")
 
-    # --- 18. 📝 Word/Text to PDF ---
-    @app.on_message(filters.command("pdf"))
-    async def make_pdf(c, m):
-        if len(m.command) < 2: return
-        from reportlab.pdfgen import canvas
-        text = m.text.split(None, 1)[1]
-        pdf_file = f"doc_{m.from_user.id}.pdf"
-        can = canvas.Canvas(pdf_file)
-        can.drawString(100, 750, text)
-        can.save()
-        await m.reply_document(pdf_file, caption="📄 Mətniniz PDF-ə çevrildi.")
-        os.remove(pdf_file)
+    # --- 5. VİKİPEDİYA ---
+    @app.on_message(filters.command("wiki"))
+    async def wiki_search(client, message):
+        if len(message.command) < 2: return
+        query = message.text.split(None, 1)[1]
+        try:
+            res = requests.get(f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}").json()
+            await message.reply_text(f"📖 **{res['title']}**\n\n{res['extract']}\n\n[Daha ətraflı]({res['content_urls']['desktop']['page']})")
+        except: await message.reply_text("❌ Məlumat tapılmadı.")
 
-    # --- 19. 🕵️ Profil Kimliyi (WHOIS) ---
-    @app.on_message(filters.command("whois"))
-    async def who_is(c, m):
-        user = m.reply_to_message.from_user if m.reply_to_message else m.from_user
-        text = (f"👤 **İstifadəçi Məlumatı:**\n\n"
-                f"🏷 Ad: {user.first_name}\n"
-                f"🆔 ID: `{user.id}`\n"
-                f"🔗 Link: [Profile](tg://user?id={user.id})\n"
-                f"🤖 Bot: {'Bəli' if user.is_bot else 'Xeyr'}")
-        await m.reply_text(text)
+    # --- 6. NAMAZ VAXTLARI ---
+    @app.on_message(filters.command("namaz"))
+    async def namaz_times(client, message):
+        city = message.command[1] if len(message.command) > 1 else "Baku"
+        try:
+            r = requests.get(f"https://api.aladhan.com/v1/timingsByCity?city={urllib.parse.quote(city)}&country=Azerbaijan&method=3").json()
+            t = r['data']['timings']
+            await message.reply_text(f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\n🌅 Sübh: `{t['Fajr']}`\n☀️ Zöhr: `{t['Dhuhr']}`\n🌆 Əsr: `{t['Asr']}`\n🌃 Axşam: `{t['Maghrib']}`\n🌌 İşaa: `{t['Isha']}`")
+        except: await message.reply_text("❌ Xəta baş verdi.")
 
-    # --- 20. 🧪 Şifrə Yoxlayıcı ---
-    @app.on_message(filters.command("yoxla"))
-    async def check_pass(c, m):
-        if len(m.command) < 2: return
-        p = m.command[1]
-        status = "Zəif 🔴" if len(p) < 6 else "Güclü 🟢"
-        await m.reply_text(f"🔑 Şifrə dərəcəsi: **{status}**")
+    # --- 7. TƏRCÜMƏ ---
+    @app.on_message(filters.command("tercume") & filters.reply)
+    async def translate_func(client, message):
+        text = message.reply_to_message.text or message.reply_to_message.caption
+        if not text: return
+        target = message.command[1].lower() if len(message.command) > 1 else "az"
+        try:
+            url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={target}&dt=t&q={urllib.parse.quote(text)}"
+            r = requests.get(url).json()
+            await message.reply_text(f"🌐 **Tərcümə ({target.upper()}):**\n\n`{r[0][0][0]}`")
+        except: await message.reply_text("❌ Tərcümə zamanı xəta.")
 
-    # --- 21. 🎬 Film Axtarışı (IMDB) ---
-    @app.on_message(filters.command("film"))
-    async def film_search(c, m):
-        if len(m.command) < 2: return
-        query = urllib.parse.quote(m.text.split(None, 1)[1])
-        r = requests.get(f"http://www.omdbapi.com/?t={query}&apikey=784a9e9e").json()
-        if r.get("Response") == "True":
-            await m.reply_text(f"🎬 **{r['Title']}** ({r['Year']})\n⭐️ Reytinq: {r['imdbRating']}\n🎭 Janr: {r['Genre']}\n📖 Mövzu: {r['Plot']}")
-        else: await m.reply_text("❌ Film tapılmadı.")
+    # --- 8. PURGE (ADMİN) ---
+    @app.on_message(filters.command("purge") & filters.group)
+    async def purge_func(client, message):
+        if not await check_admin(client, message, OWNERS): return
+        if not message.reply_to_message: return await message.reply_text("Mesajı reply edin.")
+        try:
+            await client.delete_messages(message.chat.id, range(message.reply_to_message.id, message.id))
+            await message.reply_text("🧹 Təmizləndi.")
+        except: pass
 
-    # --- 22. 💎 Bonus: Zəng (Prank Call Məqsədli) ---
-    @app.on_message(filters.command("zeng"))
-    async def prank_call(c, m):
-        await m.reply_text("📞 İstifadəçi ilə zəng bağlantısı qurulur... 📵 Xəta: Qarşı tərəf məşğuldur.")
-
-    # --- 23. 🌍 IP Info ---
-    @app.on_message(filters.command("ip"))
-    async def ip_info(c, m):
-        if len(m.command) < 2: return
-        ip = m.command[1]
-        r = requests.get(f"http://ip-api.com/json/{ip}").json()
-        await m.reply_text(f"🌐 **IP:** {ip}\n📍 Ölkə: {r.get('country')}\n🏙 Şəhər: {r.get('city')}\n📡 ISP: {r.get('isp')}")
-
-    # --- 24. 🌙 Gecə Modu (Admin) ---
-    @app.on_message(filters.command("gece") & filters.group)
-    async def night_mode(c, m):
-        # is_admin funksiyası bot.py daxilindədir, ona görə birbaşa işləyəcək
-        await m.reply_text("🌙 **Gecə modu aktiv edildi.** Artıq qrupda yalnız adminlər yaza bilər (Simulyasiya).")
-
-    # --- 25. ⚡️ Ping Sürəti ---
-    @app.on_message(filters.command("ping"))
-    async def ping_speed(c, m):
-        start = time.time()
-        msg = await m.reply_text("🚀")
-        end = time.time()
-        await msg.edit_text(f"⚡️ **Bot Sürəti:** `{(end - start) * 1000:.2f} ms`")
+    # --- 9. OYUNLAR ---
+    @app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice"]))
+    async def games_func(client, message):
+        emojis = {"basket":"🏀", "futbol":"⚽", "dart":"🎯", "slot":"🎰", "dice":"🎲"}
+        await client.send_dice(message.chat.id, emoji=emojis[message.command[0]])
