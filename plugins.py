@@ -1,3 +1,8 @@
+import os, asyncio, requests, urllib.parse, time
+from pyrogram import filters
+from pyrogram.types import BotCommand
+
+def init_plugins(app, get_db_connection):
     # --- 14. 🕵️ KİM SİLDİ? (LOG SİSTEMİ) ---
     @app.on_deleted_messages()
     async def deleted_log(c, m):
@@ -96,7 +101,7 @@
     # --- 24. 🌙 Gecə Modu (Admin) ---
     @app.on_message(filters.command("gece") & filters.group)
     async def night_mode(c, m):
-        if not await is_admin(c, m): return
+        # is_admin funksiyası bot.py daxilindədir, ona görə birbaşa işləyəcək
         await m.reply_text("🌙 **Gecə modu aktiv edildi.** Artıq qrupda yalnız adminlər yaza bilər (Simulyasiya).")
 
     # --- 25. ⚡️ Ping Sürəti ---
@@ -106,22 +111,3 @@
         msg = await m.reply_text("🚀")
         end = time.time()
         await msg.edit_text(f"⚡️ **Bot Sürəti:** `{(end - start) * 1000:.2f} ms`")
-
-    # --- [ KOMANDA MENYUSU YENİLƏNMƏSİ ] ---
-    async def set_cmds():
-        commands = [
-            BotCommand("help", "Bütün funksiyalar"),
-            BotCommand("tarix", "Ad keçmişi"),
-            BotCommand("top", "Ən aktiv üzvlər"),
-            BotCommand("whois", "Profil məlumatı"),
-            BotCommand("film", "Film axtar (IMDB)"),
-            BotCommand("ip", "IP məlumatı"),
-            BotCommand("ping", "Botun sürəti"),
-            BotCommand("namaz", "Namaz vaxtları"),
-            BotCommand("xatirlat", "Xatırladıcı (10m, 1h)"),
-            BotCommand("bw", "Şəkli Ağ-Qara et"),
-            BotCommand("pixel", "Şəkli Piksel et")
-        ]
-        await app.set_bot_commands(commands)
-    
-    asyncio.ensure_future(set_cmds())
