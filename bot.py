@@ -4,6 +4,12 @@ from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 from pyrogram.errors import FloodWait
 
+# --- PLUGİNS FAYLINI TANIMAQ ÜÇÜN KÖRPÜ ---
+try:
+    from plugins import init_plugins
+except ImportError:
+    init_plugins = None
+
 # --- AYARLAR ---
 API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
@@ -36,6 +42,9 @@ def init_db():
     cur.execute("CREATE TABLE IF NOT EXISTS broadcast_list (chat_id BIGINT PRIMARY KEY)")
     cur.execute("CREATE TABLE IF NOT EXISTS brain (content TEXT, chat_id BIGINT)")
     cur.execute("CREATE TABLE IF NOT EXISTS qadaga_list (word TEXT PRIMARY KEY)")
+    # --- YENİ VİZYON CƏDVƏLLƏRİ ---
+    cur.execute("CREATE TABLE IF NOT EXISTS user_history (user_id BIGINT, old_name TEXT, old_username TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+    cur.execute("CREATE TABLE IF NOT EXISTS user_stats (user_id BIGINT PRIMARY KEY, msg_count INT DEFAULT 0)")
     conn.commit()
     cur.close()
     conn.close()
@@ -54,7 +63,7 @@ async def is_admin(client, message):
     except:
         return False
 
-# --- START MESAJI (SAHİBƏ BUTONU @Aysberqqq OLDU) ---
+# --- START MESAJI ---
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message):
     try:
@@ -156,7 +165,7 @@ async def broadcast_func(client, message):
             continue
     await status_msg.edit(f"✅ Yönləndirmə tamamlandı: {success} yerə göndərildi.")
 
-# --- HELP (YENİ KOMANDALAR ƏLAVƏ OLUNDU) ---
+# --- HELP ---
 @app.on_message(filters.command("help"))
 async def help_cmd(client, message):
     help_text = (
@@ -235,12 +244,12 @@ async def stop_tag(client, message):
     tag_process[message.chat.id] = False
     await message.reply_text("**🛑 Tağ dayandırıldı.**")
 
-# --- YENİ VİZYON KOMANDALARI (HAVA DÜZƏLDİLDİ) ---
+# --- YENİ VİZYON KOMANDALARI ---
 @app.on_message(filters.command("hava"))
 async def get_weather_cmd(client, message):
     if len(message.command) < 2: return await message.reply_text("🏙 Şəhər adı yazın. Məsələn: /hava Baki")
     city = message.command[1]
-    encoded_city = urllib.parse.quote(city) # Azərbaycan hərfləri üçün düzəliş
+    encoded_city = urllib.parse.quote(city)
     try:
         r = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={encoded_city}&appid=b6907d289e10d714a6e88b30761fae22&units=metric&lang=az").json()
         await message.reply_text(f"🌤 **{city.capitalize()}**\n🌡 Temperatur: {r['main']['temp']}°C\n☁️ Vəziyyət: {r['weather'][0]['description']}")
@@ -263,13 +272,16 @@ async def link_toggle(client, message):
     link_block_status[message.chat.id] = (status == "on")
     await message.reply_text(f"🛡 Link qoruması **{status}** edildi.")
 
-# --- CHATBOT LOGIC & QADAGA FILTER ---
+# --- CHATBOT LOGIC & TRACKER ---
 @app.on_message(filters.text & ~filters.bot, group=1)
 async def message_handler(client, message):
     chat_id = message.chat.id
     text = message.text.lower()
+    uid = message.from_user.id
+    fname = message.from_user.first_name
+    uname = message.from_user.username or "Yoxdur"
 
-    # Link qoruması yoxla
+    # Link qoruması
     if ("http" in text or "t.me" in text) and link_block_status.get(chat_id, False):
         if not await is_admin(client, message):
             await message.delete()
@@ -277,17 +289,27 @@ async def message_handler(client, message):
 
     conn = get_db_connection()
     cur = conn.cursor()
+    
+    # AD TARİXÇƏSİ TRACKER (YENİ)
+    cur.execute("SELECT old_name FROM user_history WHERE user_id = %s ORDER BY date DESC LIMIT 1", (uid,))
+    last = cur.fetchone()
+    if not last or last[0] != fname:
+        cur.execute("INSERT INTO user_history (user_id, old_name, old_username) VALUES (%s, %s, %s)", (uid, fname, uname))
+    
+    # REYTİNQ TRACKER (YENİ)
+    cur.execute("INSERT INTO user_stats (user_id, msg_count) VALUES (%s, 1) ON CONFLICT (user_id) DO UPDATE SET msg_count = user_stats.msg_count + 1", (uid,))
+
+    # Qadağa filteri
     cur.execute("SELECT word FROM qadaga_list")
     qadagalar = [r[0] for r in cur.fetchall()]
-    
     for word in qadagalar:
         if word in text:
             if message.from_user.id not in OWNERS:
                 await message.delete()
-                cur.close()
-                conn.close()
+                cur.close(); conn.close()
                 return
 
+    # Chatbot
     if chatbot_status.get(chat_id, True) and not message.text.startswith('/'):
         cur.execute("INSERT INTO brain (content, chat_id) VALUES (%s, %s)", (message.text, chat_id))
         if random.random() < 0.2:
@@ -298,10 +320,9 @@ async def message_handler(client, message):
             await message.reply_text(f"**{random.choice(CB_SOZLER)}**")
             
     conn.commit()
-    cur.close()
-    conn.close()
+    cur.close(); conn.close()
 
-# --- OYUNLAR VƏ ID ---
+# --- DİGƏR KOMANDALAR ---
 @app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice", "id", "stiker", "mute", "purge"]))
 async def misc_group_cmds(client, message):
     cmd = message.command[0]
@@ -317,10 +338,6 @@ async def misc_group_cmds(client, message):
     if cmd in ["basket", "futbol", "dart", "slot", "dice"]:
         dice_emoji = {"basket":"🏀","futbol":"⚽","dart":"🎯","slot":"🎰","dice":"🎲"}
         return await client.send_dice(message.chat.id, emoji=dice_emoji[cmd])
-    if message.chat.type == ChatType.PRIVATE:
-        return await message.reply_text("**❌ Bu komanda yalnız qruplar üçün nəzərdə tutulub!**")
-
-# ----------------- ƏLAVƏ EDİLMİŞ YENİ VİZYON FUNKSİYALARI (HİÇBİR ŞEY SİLİNMEDİ) -----------------
 
 @app.on_message(filters.command("tercume") & filters.reply)
 async def translate_msg(client, message):
@@ -337,10 +354,9 @@ async def etiraf_func(client, message):
     if len(message.command) < 2: return await message.reply_text("💬 Etirafınızı yazın: `/etiraf Botu çox sevdim`")
     etiraf_txt = message.text.split(None, 1)[1]
     try:
-        # Etiraf SOHBET_QRUPU-na göndərilir
         await client.send_message(SOHBET_QRUPU.split('/')[-1], f"🤫 **Yenİ Anonİm Etİraf:**\n\n`{etiraf_txt}`")
         await message.reply_text("✅ Etirafınız anonim olaraq qrupa göndərildi!")
-    except: await message.reply_text("❌ Qrupa göndərilə bilmədi. Botun qrupda olduğundan əmin olun.")
+    except: await message.reply_text("❌ Xəta baş verdi.")
 
 @app.on_message(filters.command("info"))
 async def user_info(client, message):
@@ -358,12 +374,17 @@ async def ping_pong(client, message):
 @app.on_message(filters.new_chat_members)
 async def welcome_new(client, message):
     for member in message.new_chat_members:
-        await message.reply_text(f"🌟 **Xoş gəldin, {member.mention}!**\nQrupumuzda xoş vaxt keçirməyinizi arzu edirik.")
+        await message.reply_text(f"🌟 **Xoş gəldin, {member.mention}!**")
 
 # --- STARTUP & COMMAND MENU ---
 async def main():
     await app.start()
-    # Komanda menyusunu qururuq (Səliqəli siyahı)
+    
+    # PLUGİNS AKTİVLƏŞDİRMƏ (YENİ)
+    if init_plugins:
+        init_plugins(app, get_db_connection)
+        print("✅ Plugins uğurla qoşuldu!")
+
     await app.set_bot_commands([
         BotCommand("start", "Botu işə sal"),
         BotCommand("help", "Kömək menyusu"),
@@ -375,9 +396,10 @@ async def main():
         BotCommand("tercume", "Mesajı tərcümə et"),
         BotCommand("etiraf", "Anonim etiraf et"),
         BotCommand("ping", "Botun sürəti"),
-        BotCommand("purge", "Mesajları təmizlə")
+        BotCommand("tarix", "Ad keçmişi (Plugin)"),
+        BotCommand("top", "Aktiv üzvlər (Plugin)")
     ])
-    print("Bot tam və vizyon əlavələri ilə aktivdir!")
+    print("Bot tam aktivdir!")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
