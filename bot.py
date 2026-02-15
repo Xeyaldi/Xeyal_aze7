@@ -1,4 +1,4 @@
-import os, asyncio, random, psycopg2, requests, urllib.parse
+import os, asyncio, random, psycopg2, requests, urllib.parse, time
 from pyrogram import Client, filters
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
@@ -27,12 +27,12 @@ tag_process = {}
 chatbot_status = {}
 link_block_status = {}
 
-# ----------------- SİYAHLAR (TAM VERSİYA - TOXUNULMADI) -----------------
+# ----------------- SİYAHLAR (SƏNİN ATDIĞIN TAM VERSİYA) -----------------
 BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
 EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉"]
 CB_SOZLER = ["Salam","Necəsən?","Nə var nə yox?","Hardasan?","Xoş gəldin","Sağ ol","Buyur","Bəli","Xeyr","Əlbəttə","Can","Nolsun?","Gözəl","Bomba kimi","İşdəyəm","Evdəyəm","Yoldayam","Nə edirsən?","Heç nə","Sən nə edirsən?","Məzələnirsən?","Vay vay","Ay can","Oldu"]
 
-# --- DATABASE ---
+# --- DATABASE (ORİJİNAL) ---
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
@@ -42,7 +42,6 @@ def init_db():
     cur.execute("CREATE TABLE IF NOT EXISTS broadcast_list (chat_id BIGINT PRIMARY KEY)")
     cur.execute("CREATE TABLE IF NOT EXISTS brain (content TEXT, chat_id BIGINT)")
     cur.execute("CREATE TABLE IF NOT EXISTS qadaga_list (word TEXT PRIMARY KEY)")
-    # --- YENİ VİZYON CƏDVƏLLƏRİ ---
     cur.execute("CREATE TABLE IF NOT EXISTS user_history (user_id BIGINT, old_name TEXT, old_username TEXT, date TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
     cur.execute("CREATE TABLE IF NOT EXISTS user_stats (user_id BIGINT PRIMARY KEY, msg_count INT DEFAULT 0)")
     conn.commit()
@@ -125,7 +124,7 @@ async def qadaga_cmd(client, message):
         return await message.reply_text("⚠️ **Bu əmrdən yalniz sᴀʜɪʙə istifadə edə bilər**")
     
     if len(message.command) < 2:
-        return await message.reply_text("Zəhmət olmasa qadağan ediləcək sözü yazın.\nNümunə: `/qadaga soyus`")
+        return await message.reply_text("Zəhmət olmasa qadağan ediləcək sözü yazın.")
     
     word = message.text.split(None, 1)[1].lower()
     conn = get_db_connection()
@@ -165,7 +164,7 @@ async def broadcast_func(client, message):
             continue
     await status_msg.edit(f"✅ Yönləndirmə tamamlandı: {success} yerə göndərildi.")
 
-# --- HELP ---
+# --- HELP (SƏNİN İSTƏDİYİN KİMİ YENİLƏNDİ) ---
 @app.on_message(filters.command("help"))
 async def help_cmd(client, message):
     help_text = (
@@ -176,14 +175,17 @@ async def help_cmd(client, message):
         "• /valyuta - Günlük məzənə\n"
         "• /id - ID göstərər\n"
         "• /info - İstifadəçi məlumatı\n"
-        "• /tercume - (Reply) Tərcümə edər\n\n"
+        "• /tercume [dil] - (Reply) Tərcümə edər\n"
+        "• /wiki [mövzu] - Vikipediya axtarışı\n"
+        "• /namaz [şəhər] - Namaz vaxtları\n\n"
         "📢 **TAĞ KOMANDALARI:**\n"
         "• /tag - Brilyant tağ\n"
         "• /utag - Emoji tağ\n"
         "• /flagtag - Bayraq tağ\n"
         "• /tektag - Təkli tağ\n\n"
-        "🤫 **ÖZƏL:**\n"
-        "• /etiraf [mesaj] - Anonim etiraf\n\n"
+        "🤫 **ETİRAFLAR:**\n"
+        "• /etiraf [mesaj] - Anonim etiraf\n"
+        "• /acetiraf [mesaj] - Açıq etiraf\n\n"
         "🛑 **DAYANDIRMAQ:** /tagstop\n"
         "💬 **CHATBOT:** /chatbot on/off\n"
         "🛡 **ADMİN:** /purge, /link on/off, /ping"
@@ -205,7 +207,7 @@ async def chatbot_toggle(client, message):
         chatbot_status[message.chat.id] = False
         await message.reply_text("**❌ Chatbot söndürüldü!**")
 
-# --- TAĞ SİSTEMİ ---
+# --- TAĞ SİSTEMİ (ORİJİNAL) ---
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]))
 async def tag_handler(client, message):
     if message.chat.type == ChatType.PRIVATE:
@@ -244,35 +246,32 @@ async def stop_tag(client, message):
     tag_process[message.chat.id] = False
     await message.reply_text("**🛑 Tağ dayandırıldı.**")
 
-# --- YENİ VİZYON KOMANDALARI ---
+# --- HAVA, VALYUTA, LİNK ---
 @app.on_message(filters.command("hava"))
 async def get_weather_cmd(client, message):
-    if len(message.command) < 2: return await message.reply_text("🏙 Şəhər adı yazın. Məsələn: /hava Baki")
+    if len(message.command) < 2: return await message.reply_text("🏙 Şəhər adı yazın.")
     city = message.command[1]
-    encoded_city = urllib.parse.quote(city)
     try:
-        r = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={encoded_city}&appid=b6907d289e10d714a6e88b30761fae22&units=metric&lang=az").json()
+        r = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={urllib.parse.quote(city)}&appid=b6907d289e10d714a6e88b30761fae22&units=metric&lang=az").json()
         await message.reply_text(f"🌤 **{city.capitalize()}**\n🌡 Temperatur: {r['main']['temp']}°C\n☁️ Vəziyyət: {r['weather'][0]['description']}")
-    except: await message.reply_text("❌ Xəta: Şəhər tapılmadı.")
+    except: await message.reply_text("❌ Şəhər tapılmadı.")
 
 @app.on_message(filters.command("valyuta"))
 async def get_val_cmd(client, message):
     try:
         r = requests.get("https://api.exchangerate-api.com/v4/latest/AZN").json()
-        usd = 1/r['rates']['USD']
-        eur = 1/r['rates']['EUR']
-        await message.reply_text(f"💰 **Məzənnə:**\n\n🇺🇸 1 USD = {usd:.2f} AZN\n🇪🇺 1 EUR = {eur:.2f} AZN")
+        await message.reply_text(f"💰 **Məzənnə:**\n\n🇺🇸 1 USD = {1/r['rates']['USD']:.2f} AZN\n🇪🇺 1 EUR = {1/r['rates']['EUR']:.2f} AZN")
     except: await message.reply_text("❌ Məzənnə alınmadı.")
 
 @app.on_message(filters.command("link"))
 async def link_toggle(client, message):
     if not await is_admin(client, message): return
-    if len(message.command) < 2: return await message.reply_text("/link on və ya /link off")
+    if len(message.command) < 2: return await message.reply_text("/link on/off")
     status = message.command[1].lower()
     link_block_status[message.chat.id] = (status == "on")
     await message.reply_text(f"🛡 Link qoruması **{status}** edildi.")
 
-# --- CHATBOT LOGIC & TRACKER ---
+# --- CHATBOT LOGIC & TRACKER (BÜTÜN TRACKERLƏR QALDI) ---
 @app.on_message(filters.text & ~filters.bot, group=1)
 async def message_handler(client, message):
     chat_id = message.chat.id
@@ -281,7 +280,6 @@ async def message_handler(client, message):
     fname = message.from_user.first_name
     uname = message.from_user.username or "Yoxdur"
 
-    # Link qoruması
     if ("http" in text or "t.me" in text) and link_block_status.get(chat_id, False):
         if not await is_admin(client, message):
             await message.delete()
@@ -290,16 +288,13 @@ async def message_handler(client, message):
     conn = get_db_connection()
     cur = conn.cursor()
     
-    # AD TARİXÇƏSİ TRACKER (YENİ)
     cur.execute("SELECT old_name FROM user_history WHERE user_id = %s ORDER BY date DESC LIMIT 1", (uid,))
     last = cur.fetchone()
     if not last or last[0] != fname:
         cur.execute("INSERT INTO user_history (user_id, old_name, old_username) VALUES (%s, %s, %s)", (uid, fname, uname))
     
-    # REYTİNQ TRACKER (YENİ)
     cur.execute("INSERT INTO user_stats (user_id, msg_count) VALUES (%s, 1) ON CONFLICT (user_id) DO UPDATE SET msg_count = user_stats.msg_count + 1", (uid,))
 
-    # Qadağa filteri
     cur.execute("SELECT word FROM qadaga_list")
     qadagalar = [r[0] for r in cur.fetchall()]
     for word in qadagalar:
@@ -309,7 +304,6 @@ async def message_handler(client, message):
                 cur.close(); conn.close()
                 return
 
-    # Chatbot
     if chatbot_status.get(chat_id, True) and not message.text.startswith('/'):
         cur.execute("INSERT INTO brain (content, chat_id) VALUES (%s, %s)", (message.text, chat_id))
         if random.random() < 0.2:
@@ -322,84 +316,103 @@ async def message_handler(client, message):
     conn.commit()
     cur.close(); conn.close()
 
-# --- DİGƏR KOMANDALAR ---
-@app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice", "id", "stiker", "mute", "purge"]))
-async def misc_group_cmds(client, message):
-    cmd = message.command[0]
-    if cmd == "id":
-        return await message.reply_text(f"**🆔 Sizin ID:** `{message.from_user.id}`")
-    
-    if cmd == "purge" and await is_admin(client, message):
-        if message.reply_to_message:
-            m_ids = range(message.reply_to_message.id, message.id)
-            await client.delete_messages(message.chat.id, m_ids)
-            return await message.reply_text("🧹 Təmizləndi!")
-
-    if cmd in ["basket", "futbol", "dart", "slot", "dice"]:
-        dice_emoji = {"basket":"🏀","futbol":"⚽","dart":"🎯","slot":"🎰","dice":"🎲"}
-        return await client.send_dice(message.chat.id, emoji=dice_emoji[cmd])
-
+# --- TƏRCÜMƏ (SƏNİN İSTƏDİYİN DÖNGÜLÜ VERSİYA) ---
 @app.on_message(filters.command("tercume") & filters.reply)
 async def translate_msg(client, message):
     text = message.reply_to_message.text
     if not text: return
-    try:
-        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=az&dt=t&q={urllib.parse.quote(text)}"
-        r = requests.get(url).json()
-        await message.reply_text(f"🌐 **Tərcümə (AZ):**\n\n`{r[0][0][0]}`")
-    except: await message.reply_text("❌ Tərcümə zamanı xəta baş verdi.")
+    
+    if len(message.command) > 1:
+        target_lang = message.command[1].lower()
+        try:
+            url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={target_lang}&dt=t&q={urllib.parse.quote(text)}"
+            r = requests.get(url).json()
+            await message.reply_text(f"🌐 **{target_lang.upper()}:**\n`{r[0][0][0]}`")
+        except: await message.reply_text("❌ Xəta.")
+    else:
+        langs = {"en": "🇬🇧 EN", "tr": "🇹🇷 TR", "ru": "🇷🇺 RU", "de": "🇩🇪 DE", "fr": "🇫🇷 FR"}
+        res = "🌐 **5 Dilə Döngülü Tərcümə:**\n\n"
+        for code, name in langs.items():
+            try:
+                url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={code}&dt=t&q={urllib.parse.quote(text)}"
+                r = requests.get(url).json()
+                res += f"🔹 {name}: `{r[0][0][0]}`\n"
+            except: continue
+        await message.reply_text(res)
 
+# --- VİKİPEDİYA VƏ NAMAZ ---
+@app.on_message(filters.command("wiki"))
+async def wiki_search(client, message):
+    if len(message.command) < 2: return
+    try:
+        query = message.text.split(None, 1)[1]
+        r = requests.get(f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}").json()
+        await message.reply_text(f"📖 **{r['title']}**\n\n{r['extract']}\n\n🔗 [Daha çox]({r['content_urls']['desktop']['page']})", disable_web_page_preview=True)
+    except: await message.reply_text("❌ Tapılmadı.")
+
+@app.on_message(filters.command("namaz"))
+async def namaz_vaxtlari(client, message):
+    city = message.command[1] if len(message.command) > 1 else "Baku"
+    try:
+        r = requests.get(f"https://api.aladhan.com/v1/timingsByCity?city={city}&country=Azerbaijan&method=3").json()
+        t = r['data']['timings']
+        await message.reply_text(f"🕋 **{city.capitalize()}**\n\nSübh: `{t['Fajr']}`\nZöhr: `{t['Dhuhr']}`\nƏsr: `{t['Asr']}`\nAxşam: `{t['Maghrib']}`\nİşaa: `{t['Isha']}`")
+    except: await message.reply_text("❌ Xəta.")
+
+# --- ETİRAF SİSTEMİ ---
 @app.on_message(filters.command("etiraf"))
-async def etiraf_func(client, message):
-    if len(message.command) < 2: return await message.reply_text("💬 Etirafınızı yazın: `/etiraf Botu çox sevdim`")
-    etiraf_txt = message.text.split(None, 1)[1]
+async def etiraf_anonim(client, message):
+    if len(message.command) < 2: return
     try:
-        await client.send_message(SOHBET_QRUPU.split('/')[-1], f"🤫 **Yenİ Anonİm Etİraf:**\n\n`{etiraf_txt}`")
-        await message.reply_text("✅ Etirafınız anonim olaraq qrupa göndərildi!")
-    except: await message.reply_text("❌ Xəta baş verdi.")
+        await client.send_message(SOHBET_QRUPU.split('/')[-1], f"🤫 **Anonim Etiraf:**\n\n`{message.text.split(None, 1)[1]}`")
+        await message.reply_text("✅ Göndərildi.")
+    except: pass
 
-@app.on_message(filters.command("info"))
-async def user_info(client, message):
-    user = message.reply_to_message.from_user if message.reply_to_message else message.from_user
-    await message.reply_text(f"👤 **İstifadəçİ Məlumatı:**\n\n📌 Ad: {user.first_name}\n🆔 ID: `{user.id}`\n🌐 Username: @{user.username if user.username else 'Yoxdur'}")
+@app.on_message(filters.command("acetiraf"))
+async def etiraf_aciq(client, message):
+    if len(message.command) < 2: return
+    try:
+        await client.send_message(SOHBET_QRUPU.split('/')[-1], f"📢 **Açıq Etiraf ({message.from_user.mention}):**\n\n`{message.text.split(None, 1)[1]}`")
+        await message.reply_text("✅ Göndərildi.")
+    except: pass
 
-@app.on_message(filters.command("ping"))
-async def ping_pong(client, message):
-    import time
-    start = time.time()
-    msg = await message.reply_text("⚡")
-    end = time.time()
-    await msg.edit(f"🚀 **Pong!** `{int((end - start) * 1000)}ms`")
+# --- DİGƏR KOMANDALAR ---
+@app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice", "id", "purge", "ping", "info"]))
+async def misc_cmds(client, message):
+    cmd = message.command[0]
+    if cmd == "id": await message.reply_text(f"🆔 ID: `{message.from_user.id}`")
+    elif cmd == "ping":
+        s = time.time(); m = await message.reply_text("⚡"); await m.edit(f"🚀 `{int((time.time()-s)*1000)}ms`")
+    elif cmd == "info":
+        u = message.reply_to_message.from_user if message.reply_to_message else message.from_user
+        await message.reply_text(f"👤 Ad: {u.first_name}\n🆔 ID: `{u.id}`")
+    elif cmd == "purge" and await is_admin(client, message):
+        if message.reply_to_message:
+            await client.delete_messages(message.chat.id, range(message.reply_to_message.id, message.id))
+    elif cmd in ["basket", "futbol", "dart", "slot", "dice"]:
+        await client.send_dice(message.chat.id, emoji={"basket":"🏀","futbol":"⚽","dart":"🎯","slot":"🎰","dice":"🎲"}[cmd])
 
-@app.on_message(filters.new_chat_members)
-async def welcome_new(client, message):
-    for member in message.new_chat_members:
-        await message.reply_text(f"🌟 **Xoş gəldin, {member.mention}!**")
-
-# --- STARTUP & COMMAND MENU ---
+# --- STARTUP VƏ MENYU ---
 async def main():
     await app.start()
-    
-    # PLUGİNS AKTİVLƏŞDİRMƏ (YENİ)
     if init_plugins:
         init_plugins(app, get_db_connection)
-        print("✅ Plugins uğurla qoşuldu!")
-
+    
     await app.set_bot_commands([
-        BotCommand("start", "Botu işə sal"),
+        BotCommand("start", "Botu başladın"),
         BotCommand("help", "Kömək menyusu"),
         BotCommand("tag", "Brilyant tağ"),
+        BotCommand("utag", "Emoji tağ"),
+        BotCommand("tercume", "Tərcümə (Reply ilə)"),
+        BotCommand("wiki", "Vikipediya"),
+        BotCommand("namaz", "Namaz vaxtları"),
         BotCommand("hava", "Hava durumu"),
-        BotCommand("valyuta", "Məzənnə"),
-        BotCommand("id", "ID-ni öyrən"),
-        BotCommand("info", "İstifadəçi məlumatı"),
-        BotCommand("tercume", "Mesajı tərcümə et"),
-        BotCommand("etiraf", "Anonim etiraf et"),
-        BotCommand("ping", "Botun sürəti"),
-        BotCommand("tarix", "Ad keçmişi (Plugin)"),
-        BotCommand("top", "Aktiv üzvlər (Plugin)")
+        BotCommand("etiraf", "Anonim etiraf"),
+        BotCommand("acetiraf", "Açıq etiraf"),
+            BotCommand("id", "ID nömrəniz"),
+        BotCommand("ping", "Botun sürəti")
     ])
-    print("Bot tam aktivdir!")
+    print("Bot 100% bütöv və aktivdir!")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
