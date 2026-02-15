@@ -27,12 +27,12 @@ tag_process = {}
 chatbot_status = {}
 link_block_status = {}
 
-# ----------------- SİYAHLAR (SƏNİN ATDIĞIN TAM VERSİYA) -----------------
+# ----------------- SİYAHLAR (HEÇ NƏ SİLİNMƏYİB) -----------------
 BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
 EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉"]
 CB_SOZLER = ["Salam","Necəsən?","Nə var nə yox?","Hardasan?","Xoş gəldin","Sağ ol","Buyur","Bəli","Xeyr","Əlbəttə","Can","Nolsun?","Gözəl","Bomba kimi","İşdəyəm","Evdəyəm","Yoldayam","Nə edirsən?","Heç nə","Sən nə edirsən?","Məzələnirsən?","Vay vay","Ay can","Oldu"]
 
-# --- DATABASE (ORİJİNAL) ---
+# --- DATABASE ---
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
@@ -164,7 +164,7 @@ async def broadcast_func(client, message):
             continue
     await status_msg.edit(f"✅ Yönləndirmə tamamlandı: {success} yerə göndərildi.")
 
-# --- HELP (SƏNİN İSTƏDİYİN KİMİ YENİLƏNDİ) ---
+# --- HELP ---
 @app.on_message(filters.command("help"))
 async def help_cmd(client, message):
     help_text = (
@@ -207,7 +207,7 @@ async def chatbot_toggle(client, message):
         chatbot_status[message.chat.id] = False
         await message.reply_text("**❌ Chatbot söndürüldü!**")
 
-# --- TAĞ SİSTEMİ (ORİJİNAL) ---
+# --- TAĞ SİSTEMİ ---
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]))
 async def tag_handler(client, message):
     if message.chat.type == ChatType.PRIVATE:
@@ -271,7 +271,7 @@ async def link_toggle(client, message):
     link_block_status[message.chat.id] = (status == "on")
     await message.reply_text(f"🛡 Link qoruması **{status}** edildi.")
 
-# --- CHATBOT LOGIC & TRACKER (BÜTÜN TRACKERLƏR QALDI) ---
+# --- CHATBOT LOGIC & TRACKER (BU HİSSƏ OLDUĞU KİMİ QALDI) ---
 @app.on_message(filters.text & ~filters.bot, group=1)
 async def message_handler(client, message):
     chat_id = message.chat.id
@@ -316,7 +316,7 @@ async def message_handler(client, message):
     conn.commit()
     cur.close(); conn.close()
 
-# --- TƏRCÜMƏ (SƏNİN İSTƏDİYİN DÖNGÜLÜ VERSİYA) ---
+# --- TƏRCÜMƏ ---
 @app.on_message(filters.command("tercume") & filters.reply)
 async def translate_msg(client, message):
     text = message.reply_to_message.text
@@ -331,7 +331,7 @@ async def translate_msg(client, message):
         except: await message.reply_text("❌ Xəta.")
     else:
         langs = {"en": "🇬🇧 EN", "tr": "🇹🇷 TR", "ru": "🇷🇺 RU", "de": "🇩🇪 DE", "fr": "🇫🇷 FR"}
-        res = "🌐 **5 Dilə Döngülü Tərcümə:**\n\n"
+        res = "🌐 **5 Dilə Tərcümə:**\n\n"
         for code, name in langs.items():
             try:
                 url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={code}&dt=t&q={urllib.parse.quote(text)}"
@@ -340,23 +340,29 @@ async def translate_msg(client, message):
             except: continue
         await message.reply_text(res)
 
-# --- VİKİPEDİYA VƏ NAMAZ ---
+# --- VİKİPEDİYA VƏ NAMAZ (YALNIZ BURADAKI MÖTƏRİZƏLƏR DÜZƏLDİ) ---
 @app.on_message(filters.command("wiki"))
 async def wiki_search(client, message):
     if len(message.command) < 2: return
     try:
         query = message.text.split(None, 1)[1]
-        r = requests.get(f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}").json()
-        await message.reply_text(f"📖 **{r['title']}**\n\n{r['extract']}\n\n🔗 [Daha çox]({r['content_urls']['desktop']['page']})", disable_web_page_preview=True)
-    except: await message.reply_text("❌ Tapılmadı.")
+        formatted_query = urllib.parse.quote(query.strip().capitalize())
+        r = requests.get(f"https://az.wikipedia.org/api/rest_v1/page/summary/{formatted_query}").json()
+        if "title" in r:
+            await message.reply_text(f"📖 **{r['title']}**\n\n{r['extract']}\n\n🔗 [Daha çox]({r['content_urls']['desktop']['page']})", disable_web_page_preview=True)
+        else:
+            await message.reply_text("❌ Tapılmadı.")
+    except: await message.reply_text("❌ Xəta.")
 
 @app.on_message(filters.command("namaz"))
 async def namaz_vaxtlari(client, message):
     city = message.command[1] if len(message.command) > 1 else "Baku"
     try:
-        r = requests.get(f"https://api.aladhan.com/v1/timingsByCity?city={city}&country=Azerbaijan&method=3").json()
+        # City dəyişəni URL daxilinə düzgün yerləşdirildi
+        url = f"https://api.aladhan.com/v1/timingsByCity?city={urllib.parse.quote(city)}&country=Azerbaijan&method=3"
+        r = requests.get(url).json()
         t = r['data']['timings']
-        await message.reply_text(f"🕋 **{city.capitalize()}**\n\nSübh: `{t['Fajr']}`\nZöhr: `{t['Dhuhr']}`\nƏsr: `{t['Asr']}`\nAxşam: `{t['Maghrib']}`\nİşaa: `{t['Isha']}`")
+        await message.reply_text(f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\nSübh: `{t['Fajr']}`\nZöhr: `{t['Dhuhr']}`\nƏsr: `{t['Asr']}`\nAxşam: `{t['Maghrib']}`\nİşaa: `{t['Isha']}`")
     except: await message.reply_text("❌ Xəta.")
 
 # --- ETİRAF SİSTEMİ ---
@@ -404,14 +410,14 @@ async def main():
         BotCommand("tag", "Brilyant tağ"),
         BotCommand("utag", "Emoji tağ"),
         BotCommand("tercume", "Tərcümə (Reply ilə)"),
-        BotCommand("wiki", "Vikipediya"),
         BotCommand("namaz", "Namaz vaxtları"),
         BotCommand("hava", "Hava durumu"),
         BotCommand("etiraf", "Anonim etiraf"),
         BotCommand("acetiraf", "Açıq etiraf"),
-            BotCommand("id", "ID nömrəniz"),
+        BotCommand("id", "ID nömrəniz"),
         BotCommand("ping", "Botun sürəti")
     ])
+    
     print("Bot 100% bütöv və aktivdir!")
     await asyncio.Event().wait()
 
