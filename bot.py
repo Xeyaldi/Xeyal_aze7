@@ -1,4 +1,4 @@
-import os, asyncio, random, psycopg2, requests
+import os, asyncio, random, psycopg2, requests, urllib.parse
 from pyrogram import Client, filters
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
@@ -54,7 +54,7 @@ async def is_admin(client, message):
     except:
         return False
 
-# --- START MESAJI ---
+# --- START MESAJI (SAHİBƏ BUTONU @Aysberqqq OLDU) ---
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message):
     try:
@@ -69,7 +69,7 @@ async def start_cmd(client, message):
 
     buttons = [
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙə", url=f"tg://user?id={SAHIBE_ID}"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
+        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
         [InlineKeyboardButton("🛠 sᴀʜɪʙə əᴍʀɪ", callback_data="sahiba_panel")]
     ]
     
@@ -101,7 +101,7 @@ async def sahiba_callback(client, callback_query):
 async def back_home(client, callback_query):
     buttons = [
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙə", url=f"tg://user?id={SAHIBE_ID}"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
+        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
         [InlineKeyboardButton("🛠 sᴀʜɪʙə əᴍʀɪ", callback_data="sahiba_panel")]
     ]
     await callback_query.message.edit_caption(
@@ -156,7 +156,7 @@ async def broadcast_func(client, message):
             continue
     await status_msg.edit(f"✅ Yönləndirmə tamamlandı: {success} yerə göndərildi.")
 
-# --- HELP (YENİLƏNDİ - HƏR ŞEY DAXİL) ---
+# --- HELP (YENİ KOMANDALAR ƏLAVƏ OLUNDU) ---
 @app.on_message(filters.command("help"))
 async def help_cmd(client, message):
     help_text = (
@@ -165,15 +165,19 @@ async def help_cmd(client, message):
         "🌍 **MƏLUMAT:**\n"
         "• /hava [şəhər] - Hava durumu\n"
         "• /valyuta - Günlük məzənə\n"
-        "• /id - ID göstərər\n\n"
+        "• /id - ID göstərər\n"
+        "• /info - İstifadəçi məlumatı\n"
+        "• /tercume - (Reply) Tərcümə edər\n\n"
         "📢 **TAĞ KOMANDALARI:**\n"
         "• /tag - Brilyant tağ\n"
         "• /utag - Emoji tağ\n"
         "• /flagtag - Bayraq tağ\n"
         "• /tektag - Təkli tağ\n\n"
+        "🤫 **ÖZƏL:**\n"
+        "• /etiraf [mesaj] - Anonim etiraf\n\n"
         "🛑 **DAYANDIRMAQ:** /tagstop\n"
         "💬 **CHATBOT:** /chatbot on/off\n"
-        "🛡 **ADMİN:** /purge (mesajları silər), /link on/off"
+        "🛡 **ADMİN:** /purge, /link on/off, /ping"
     )
     await message.reply_text(help_text)
 
@@ -231,13 +235,14 @@ async def stop_tag(client, message):
     tag_process[message.chat.id] = False
     await message.reply_text("**🛑 Tağ dayandırıldı.**")
 
-# --- YENİ VİZYON KOMANDALARI (HAVA, VALYUTA, LİNK) ---
+# --- YENİ VİZYON KOMANDALARI (HAVA DÜZƏLDİLDİ) ---
 @app.on_message(filters.command("hava"))
 async def get_weather_cmd(client, message):
     if len(message.command) < 2: return await message.reply_text("🏙 Şəhər adı yazın. Məsələn: /hava Baki")
     city = message.command[1]
+    encoded_city = urllib.parse.quote(city) # Azərbaycan hərfləri üçün düzəliş
     try:
-        r = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid=b6907d289e10d714a6e88b30761fae22&units=metric&lang=az").json()
+        r = requests.get(f"http://api.openweathermap.org/data/2.5/weather?q={encoded_city}&appid=b6907d289e10d714a6e88b30761fae22&units=metric&lang=az").json()
         await message.reply_text(f"🌤 **{city.capitalize()}**\n🌡 Temperatur: {r['main']['temp']}°C\n☁️ Vəziyyət: {r['weather'][0]['description']}")
     except: await message.reply_text("❌ Xəta: Şəhər tapılmadı.")
 
@@ -315,10 +320,50 @@ async def misc_group_cmds(client, message):
     if message.chat.type == ChatType.PRIVATE:
         return await message.reply_text("**❌ Bu komanda yalnız qruplar üçün nəzərdə tutulub!**")
 
+# ----------------- ƏLAVƏ EDİLMİŞ YENİ VİZYON FUNKSİYALARI (HİÇBİR ŞEY SİLİNMEDİ) -----------------
+
+@app.on_message(filters.command("tercume") & filters.reply)
+async def translate_msg(client, message):
+    text = message.reply_to_message.text
+    if not text: return
+    try:
+        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=az&dt=t&q={urllib.parse.quote(text)}"
+        r = requests.get(url).json()
+        await message.reply_text(f"🌐 **Tərcümə (AZ):**\n\n`{r[0][0][0]}`")
+    except: await message.reply_text("❌ Tərcümə zamanı xəta baş verdi.")
+
+@app.on_message(filters.command("etiraf"))
+async def etiraf_func(client, message):
+    if len(message.command) < 2: return await message.reply_text("💬 Etirafınızı yazın: `/etiraf Botu çox sevdim`")
+    etiraf_txt = message.text.split(None, 1)[1]
+    try:
+        # Etiraf SOHBET_QRUPU-na göndərilir
+        await client.send_message(SOHBET_QRUPU.split('/')[-1], f"🤫 **Yenİ Anonİm Etİraf:**\n\n`{etiraf_txt}`")
+        await message.reply_text("✅ Etirafınız anonim olaraq qrupa göndərildi!")
+    except: await message.reply_text("❌ Qrupa göndərilə bilmədi. Botun qrupda olduğundan əmin olun.")
+
+@app.on_message(filters.command("info"))
+async def user_info(client, message):
+    user = message.reply_to_message.from_user if message.reply_to_message else message.from_user
+    await message.reply_text(f"👤 **İstifadəçİ Məlumatı:**\n\n📌 Ad: {user.first_name}\n🆔 ID: `{user.id}`\n🌐 Username: @{user.username if user.username else 'Yoxdur'}")
+
+@app.on_message(filters.command("ping"))
+async def ping_pong(client, message):
+    import time
+    start = time.time()
+    msg = await message.reply_text("⚡")
+    end = time.time()
+    await msg.edit(f"🚀 **Pong!** `{int((end - start) * 1000)}ms`")
+
+@app.on_message(filters.new_chat_members)
+async def welcome_new(client, message):
+    for member in message.new_chat_members:
+        await message.reply_text(f"🌟 **Xoş gəldin, {member.mention}!**\nQrupumuzda xoş vaxt keçirməyinizi arzu edirik.")
+
 # --- STARTUP & COMMAND MENU ---
 async def main():
     await app.start()
-    # Komanda menyusunu qururuq
+    # Komanda menyusunu qururuq (Səliqəli siyahı)
     await app.set_bot_commands([
         BotCommand("start", "Botu işə sal"),
         BotCommand("help", "Kömək menyusu"),
@@ -326,10 +371,13 @@ async def main():
         BotCommand("hava", "Hava durumu"),
         BotCommand("valyuta", "Məzənnə"),
         BotCommand("id", "ID-ni öyrən"),
-        BotCommand("purge", "Mesajları təmizlə"),
-        BotCommand("link", "Link qoruması on/off")
+        BotCommand("info", "İstifadəçi məlumatı"),
+        BotCommand("tercume", "Mesajı tərcümə et"),
+        BotCommand("etiraf", "Anonim etiraf et"),
+        BotCommand("ping", "Botun sürəti"),
+        BotCommand("purge", "Mesajları təmizlə")
     ])
-    print("Bot tam və düzəlişlərlə aktivdir!")
+    print("Bot tam və vizyon əlavələri ilə aktivdir!")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
