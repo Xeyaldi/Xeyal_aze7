@@ -1,4 +1,8 @@
 pyrogram
 tgcrypto
-psycopg2-binary
 requests
+Pillow
+gTTS
+reportlab
+moviepy
+psycopg2-binary
