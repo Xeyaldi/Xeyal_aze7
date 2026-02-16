@@ -6,8 +6,9 @@ from PIL import Image
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 
-# --- MƏLUMAT BAZASI (Yaddaşda saxlanılır) ---
+# --- MƏLUMAT BAZASI ---
 user_stats = {} 
+user_karma = {} 
 
 # --- ADMİN YOXLAMA ---
 async def check_admin(client, message, owners):
@@ -44,105 +45,164 @@ def init_plugins(app, get_db_connection):
     async def set_commands():
         commands = [
             BotCommand("help", "📚 Geniş kömək menyusu"),
-            BotCommand("topsiralama", "🎖️ Rütbə sıralaması (Top 20)"),
-            BotCommand("pdf", "📄 Mesajı dərhal PDF et (Reply)"),
+            BotCommand("tercume", "🌍 Tərcümə (az/en/ru/tr/de/fr)"),
+            BotCommand("topsiralama", "🎖️ Aktivlik Top 20"),
+            BotCommand("topkarma", "🎭 Karma Reytinqi"),
+            BotCommand("pdf", "📄 Mesajı PDF et (Reply)"),
             BotCommand("kripto", "🪙 Kripto kursları"),
             BotCommand("love", "💘 Sevgi testi"),
             BotCommand("slap", "🥊 Şapalaq"),
-            BotCommand("qr", "🖼 QR kod yaradar"),
+            BotCommand("qr", "🖼 QR kod yaradıcı"),
             BotCommand("wiki", "📖 Vikipediyada axtarış"),
             BotCommand("valyuta", "💰 Məzənnələr"),
             BotCommand("namaz", "🕋 Namaz vaxtları"),
             BotCommand("etiraf", "🤫 Anonim etiraf"),
             BotCommand("id", "🆔 ID-ləri göstərər"),
-            BotCommand("purge", "🧹 Mesajları silər"),
-            BotCommand("info", "🎭 İstifadəçi analizi")
+            BotCommand("purge", "🧹 Mesajları silər")
         ]
         await app.set_bot_commands(commands)
 
-    # --- MESAJ SAYĞACI ---
+    # --- AVTOMATİK ARXA FON SKANI ---
+    async def background_history_scan(client, chat_id):
+        if chat_id not in user_stats: user_stats[chat_id] = {}
+        try:
+            async for msg in client.get_chat_history(chat_id, limit=10000):
+                if msg.from_user and not msg.from_user.is_bot:
+                    u_id = msg.from_user.id
+                    user_stats[chat_id][u_id] = user_stats[chat_id].get(u_id, 0) + 1
+        except: pass
+
+    # --- GLOBAL HANDLER ---
     @app.on_message(filters.group & ~filters.bot, group=-1)
-    async def count_messages(client, message):
+    async def global_handler(client, message):
         c_id, u_id = message.chat.id, message.from_user.id
-        if c_id not in user_stats: user_stats[c_id] = {}
+        if c_id not in user_stats:
+            user_stats[c_id] = {}
+            asyncio.create_task(background_history_scan(client, c_id))
         user_stats[c_id][u_id] = user_stats[c_id].get(u_id, 0) + 1
 
-    # --- 🔍 GİZLİ SKAN KOMANDASI (ADMİN ÜÇÜN) ---
+        if message.reply_to_message and message.reply_to_message.from_user:
+            target_id = message.reply_to_message.from_user.id
+            if target_id == u_id: return
+            if c_id not in user_karma: user_karma[c_id] = {}
+            if message.text == "+":
+                user_karma[c_id][target_id] = user_karma[c_id].get(target_id, 0) + 1
+                await message.reply_text(f"➕ **{message.reply_to_message.from_user.first_name}** karması artdı!")
+            elif message.text == "-":
+                user_karma[c_id][target_id] = user_karma[c_id].get(target_id, 0) - 1
+                await message.reply_text(f"➖ **{message.reply_to_message.from_user.first_name}** karması azaldı!")
+
+    # --- 🔍 GİZLİ SKAN ---
     @app.on_message(filters.command("skan") & filters.group)
     async def scan_history(client, message):
         if not await check_admin(client, message, OWNERS): return
-        m_wait = await message.reply_text("🔍 Mesajlar təhlil edilir...")
-        c_id = message.chat.id
-        if c_id not in user_stats: user_stats[c_id] = {}
-        async for msg in client.get_chat_history(c_id, limit=5000):
-            if msg.from_user and not msg.from_user.is_bot:
-                u_id = msg.from_user.id
-                user_stats[c_id][u_id] = user_stats[c_id].get(u_id, 0) + 1
-        await m_wait.edit("✅ Skan bitdi, rütbələr yeniləndi.")
+        m_wait = await message.reply_text("🔍 Mesajlar analiz edilir...")
+        asyncio.create_task(background_history_scan(client, message.chat.id))
+        await m_wait.edit("✅ Skan başladı.")
 
     # --- 📚 HELP MENYU ---
     @app.on_message(filters.command("help"))
     async def help_cmd(client, message):
         help_text = (
             "╔════════════════════╗\n"
-            "   💠 **B O T  F U L L  M E N Y U** 💠\n"
+            "   💠 **B O T  P R O  M E N Y U** 💠\n"
             "╚════════════════════╝\n\n"
-            "🎖️ **Rütbələr:**\n"
-            "🔹 `/topsiralama` - Aktivlik cədvəli (Top 20).\n\n"
-            "📄 **PDF:**\n"
-            "🔹 Reply verib `/pdf` yazın. Budur, PDF-iniz hazırdır!\n\n"
-            "🖼 **Şəkil:**\n"
-            "🔹 Şəkil göndərin - Ağ-qara format.\n\n"
-            "💖 **Əyləncə:**\n"
-            "🔹 `/love`, `/slap`, `/dice`, `/slot`, `/futbol`, `/basket`.\n\n"
-            "🌍 **Məlumat:**\n"
-            "🔹 `/kripto`, `/wiki`, `/valyuta`, `/namaz`, `/qr`.\n\n"
-            "🤫 **Etiraf:**\n"
-            "🔹 `/etiraf` / `/acetiraf`.\n\n"
-            "🛠 **Admin:**\n"
-            "🔹 `/purge`, `/id`, `/info`.\n"
+            "🎖️ **REYТİNQ:**\n"
+            "🔹 `/topsiralama` - Top 20 aktiv üzv.\n"
+            "🔹 `/topkarma` - Ən çox hörmət edilənlər.\n\n"
+            "🌍 **TƏRCÜMƏ SİSTEMİ:**\n"
+            "🔹 Mesaja reply verib istifadə edin:\n"
+            "🔹 `/tercume az` və ya `/traz`\n"
+            "🔹 `/tercume en` və ya `/tren`\n"
+            "🔹 `/tercume ru` və ya `/trru`\n"
+            "🔹 `/tercume tr` və ya `/trtr`\n"
+            "🔹 `/tercume de` və ya `/trde`\n"
+            "🔹 `/tercume fr` və ya `/trfr`\n\n"
+            "📄 **MULTİMEDİA:**\n"
+            "🔹 `/pdf` - Şəkil/Mətni dərhal PDF edər.\n"
+            "🔹 `/qr [mətn]` - QR kod yaradar.\n\n"
+            "💰 **MƏLUMAT:**\n"
+            "🔹 `/kripto`, `/valyuta`, `/wiki`, `/namaz`.\n\n"
+            "💖 **ƏYLƏNCƏ:**\n"
+            "🔹 `/love`, `/slap`, `/dice`, `/slot`, `/futbol`.\n\n"
+            "🛠 **ADMİN:**\n"
+            "🔹 `/purge`, `/id`, `/etiraf`.\n"
         )
         await message.reply_text(help_text)
 
-    # --- 🎖️ TOPSIRALAMA (TOP 20) ---
+    # --- 🔤 TƏRCÜMƏ (HƏM QISA, HƏM UZUN KOMANDA) ---
+    @app.on_message(filters.command(["tercume", "traz", "tren", "trru", "trtr", "trde", "trfr"]))
+    async def multi_translate(client, message):
+        if not message.reply_to_message:
+            return await message.reply_text("❌ Tərcümə üçün mesaja reply verin!")
+        
+        text = message.reply_to_message.text or message.reply_to_message.caption
+        if not text: return
+
+        # Komandanı analiz etmək
+        cmd = message.command[0].lower()
+        if cmd == "tercume":
+            if len(message.command) < 2:
+                return await message.reply_text("💡 Nümunə: `/tercume en` (Mesaja reply verərək)")
+            target_lang = message.command[1].lower()
+        else:
+            target_lang = cmd[2:] # "traz" -> "az" hissəsini götürür
+
+        valid_langs = ["az", "en", "ru", "tr", "de", "fr"]
+        if target_lang not in valid_langs:
+            return await message.reply_text(f"❌ Dəstəklənən dillər: {', '.join(valid_langs)}")
+
+        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={target_lang}&dt=t&q={urllib.parse.quote(text)}"
+        try:
+            res = requests.get(url).json()
+            await message.reply_text(f"🌍 **Tərcümə ({target_lang.upper()}):**\n\n`{res[0][0][0]}`")
+        except:
+            await message.reply_text("❌ Tərcümə zamanı xəta baş verdi.")
+
+    # --- QALAN BÜTÜN FUNKSİYALAR (SİLMƏDƏN) ---
     @app.on_message(filters.command("topsiralama") & filters.group)
     async def top_ranks(client, message):
         c_id = message.chat.id
         if c_id not in user_stats or not user_stats[c_id]:
             return await message.reply_text("🪖 Məlumat yoxdur.")
         sorted_users = sorted(user_stats[c_id].items(), key=lambda x: x[1], reverse=True)[:20]
-        text = "🎖️ **Qrupun Ən Aktiv 20 Əsgəri** 🎖️\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
+        text = "🎖️ **Qrupun Top 20 Aktiv Üzvü**\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
         for i, (u_id, count) in enumerate(sorted_users, 1):
-            mention = await get_mention(client, u_id)
-            rank = get_rank(count)
+            mention = await get_mention(client, u_id); rank = get_rank(count)
             text += f"{i:02d}. {rank} | {mention}\n╰─ 💬 Mesaj: `{count}`\n\n"
         await message.reply_text(text)
 
-    # --- 📄 PDF SİSTEMİ ---
+    @app.on_message(filters.command("topkarma") & filters.group)
+    async def top_karma_cmd(client, message):
+        c_id = message.chat.id
+        if c_id not in user_karma or not user_karma[c_id]:
+            return await message.reply_text("🎭 Karma hələ yoxdur.")
+        sorted_karma = sorted(user_karma[c_id].items(), key=lambda x: x[1], reverse=True)[:10]
+        text = "🎭 **Karma Reytinqi (Top 10)**\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
+        for i, (u_id, val) in enumerate(sorted_karma, 1):
+            mention = await get_mention(client, u_id)
+            text += f"{i}. {mention} — `{val}` Karma\n"
+        await message.reply_text(text)
+
     @app.on_message(filters.command("pdf"))
     async def instant_pdf(client, message):
-        if not message.reply_to_message:
-            return await message.reply_text("❌ Reply verin!")
+        if not message.reply_to_message: return await message.reply_text("❌ Reply verin!")
         target = message.reply_to_message
         photo_path = await target.download() if target.photo else None
         text_content = target.caption if target.photo else (target.text if target.text else None)
-        wait_msg = await message.reply_text("⏳ Budur, PDF-iniz hazırdır...")
+        wait_msg = await message.reply_text("⏳ PDF hazırlanır...")
         pdf_name = f"pdf_{message.from_user.id}.pdf"
         c = canvas.Canvas(pdf_name, pagesize=A4)
         if photo_path:
-            with Image.open(photo_path) as img:
-                img.convert("L").save(photo_path)
-            c.drawImage(photo_path, 50, 350, 500, 450)
-            os.remove(photo_path)
+            with Image.open(photo_path) as img: img.convert("L").save(photo_path)
+            c.drawImage(photo_path, 50, 350, 500, 450); os.remove(photo_path)
         if text_content:
             c.setFont("Helvetica", 14)
-            y_pos = 320 if photo_path else 800
-            c.drawString(70, y_pos, f"Metin: {text_content[:150]}")
+            c.drawString(70, 320 if photo_path else 800, f"Mezmun: {text_content[:150]}")
         c.showPage(); c.save()
         await message.reply_document(pdf_name, caption="📄 Budur, PDF-iniz hazırdır!")
         os.remove(pdf_name); await wait_msg.delete()
 
-    # --- 🤫 ETİRAF ---
     @app.on_message(filters.command(["etiraf", "acetiraf"]))
     async def etiraf_handler(client, message):
         if len(message.command) < 2: return
@@ -157,7 +217,6 @@ def init_plugins(app, get_db_connection):
         await client.send_message(TARGET_GROUP, f"🤫 **Etiraf:**\n\n{callback_query.message.text}")
         await callback_query.edit_message_text("✅ Təsdiqləndi.")
 
-    # --- 🖼 ŞƏKİL REDAKTORU ---
     @app.on_message(filters.photo)
     async def bw_photo(client, message):
         path = await message.download()
@@ -165,7 +224,6 @@ def init_plugins(app, get_db_connection):
         await message.reply_photo("bw.jpg", caption="🖼 Ağ-qara edildi.")
         os.remove(path); os.remove("bw.jpg")
 
-    # --- 🌍 DİGƏR KOMANDALAR ---
     @app.on_message(filters.command("love"))
     async def love_cmd(client, message):
         target = message.text.split(None, 1)[1] if len(message.command) > 1 else (message.reply_to_message.from_user.id if message.reply_to_message else None)
@@ -212,3 +270,9 @@ def init_plugins(app, get_db_connection):
     @app.on_message(filters.command("id"))
     async def id_cmd(client, message):
         await message.reply_text(f"🆔 Sizin ID: `{message.from_user.id}`\n🆔 Çat ID: `{message.chat.id}`")
+
+    @app.on_message(filters.command("qr"))
+    async def qr_cmd(client, message):
+        if len(message.command) < 2: return
+        txt = urllib.parse.quote(message.text.split(None, 1)[1])
+        await message.reply_photo(f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={txt}")
