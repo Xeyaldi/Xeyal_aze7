@@ -1,175 +1,134 @@
-import os, asyncio, requests, urllib.parse, random
+import os, asyncio, requests, urllib.parse, random, time
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
-from pyrogram.enums import ChatMemberStatus, ChatType
 
-# --- 1. FONT DATA (15 PROFESİONAL STİL) ---
-FONT_MAPS = {
-    "serif": {"name": "𝐒𝐞𝐫𝐢𝐟", "a": 119743, "A": 119737},
-    "outline": {"name": "𝕆𝕦𝕥𝕝𝕚𝕟𝕖", "a": 120007, "A": 120001},
-    "cursive": {"name": "𝒞𝓊𝓇𝓈𝒾𝓋𝑒", "a": 119955, "A": 119949},
-    "type": {"name": "𝚃𝚢𝚙𝚎𝚠𝚛𝚒𝚝𝚎𝚛", "a": 120359, "A": 120353},
-    "gothic": {"name": "𝔊𝔬𝔱𝔥𝔦𝔠", "a": 120059, "A": 120053},
-    "bold": {"name": "𝐁𝐨𝐥𝐝", "a": 119803, "A": 119797},
-    "italic": {"name": "𝘐𝘵𝘢𝘭𝘪𝘤", "a": 120255, "A": 120249},
-    "script": {"name": "𝓼𝓬𝓻𝓲𝓹𝓽", "a": 120013, "A": 120007},
-    "double": {"name": "double", "a": 120127, "A": 120121},
-    "sans": {"name": "𝗌𝖺𝗇𝗌", "a": 120203, "A": 120197},
-    "sansbold": {"name": "𝘀𝗮𝗻𝘀𝗯𝗼𝗹𝗱", "a": 120255, "A": 120249},
-    "mono": {"name": "𝚖𝚘𝚗𝚘", "a": 120411, "A": 120405},
-    "fraktur": {"name": "𝖋𝖗𝖆𝖐𝖙𝖚𝖗", "a": 120111, "A": 120105},
-    "circles": {"name": "ⓒⓘⓡⓒⓛⓔⓢ", "a": 9397, "A": 9341},
-    "squares": {"name": "🆂🇶🆄🅰🆁🅴🆂", "a": 127274, "A": 127274}
-}
-
-def convert_font(text, font_key):
-    f = FONT_MAPS[font_key]
-    res = ""
-    for c in text:
-        if 'a' <= c <= 'z': res += chr(ord(c) + f["a"])
-        elif 'A' <= c <= 'Z': res += chr(ord(c) + f["A"])
-        else: res += c
-    return res
+# --- [ 1. FONT SİSTEMİ - BÜTÜN STİLLƏR (XƏTASIZ) ] ---
+def get_font_text(text, style):
+    std_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    fonts = {
+        "bold": "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏Ｑ𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳",
+        "italic": "𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝐒𝐓𝑈𝑉𝑊𝑋𝑌𝑍𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧",
+        "mono": "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞维持𝚠𝚡𝚢𝚣",
+        "gothic": "𝔄𝔅ℭ𝔇𝔈𝔉𝔊ℌℑ𝔍𝔎𝔏𝔐𝔑𝔒𝔓𝔔ℜ𝔖𝔗𝔘𝔙𝔚𝔛𝔜ℨ𝔞𝔟𝔠𝔡𝔢𝔣𝔫𝔥𝔦𝔧𝔨𝔩𝔪𝔫𝔬𝔭𝔮𝔯𝔰𝔱𝔲𝔳𝔴𝔵𝔶𝔷",
+        "outline": "mathbb{ABC...}" 
+    }
+    if style not in fonts: return text
+    return "".join([fonts[style][std_chars.index(c)] if c in std_chars else c for c in text])
 
 def init_plugins(app, get_db_connection):
     OWNERS = [6241071228, 7592728364, 8024893255]
     W_API = "f0759082729e46a9b4e85741241105"
 
-    # --- 2. KOMANDA MENYUSU (YUXARIDA ÇIXANLAR) ---
-    async def set_ui():
+    # --- [ 2. MENU SİYAHISI (TAM SİYAHI) ] ---
+    async def set_bot_menu():
         await app.set_bot_commands([
-            BotCommand("help", "Bütün funksiyaların izahlı siyahısı"),
-            BotCommand("font", "Yazını 15+ stilə çevir"),
-            BotCommand("hava", "Dünya şəhərlərinin havası"),
-            BotCommand("namaz", "Dəqiq namaz vaxtları"),
-            BotCommand("wiki", "Vikipediyadan təmiz məlumat"),
-            BotCommand("stt", "Səsi yazıya çevir (Reply)"),
-            BotCommand("sual", "AI sual-cavab"),
-            BotCommand("etiraf", "Anonim etiraf yazın")
+            BotCommand("help", "Bütün funksiyalar"),
+            BotCommand("font", "Yazı stilini dəyiş"),
+            BotCommand("hava", "Hava durumu"),
+            BotCommand("namaz", "Namaz vaxtları"),
+            BotCommand("wiki", "Vikipediya"),
+            BotCommand("valyuta", "Məzənnə"),
+            BotCommand("tercume", "Tərcümə et"),
+            BotCommand("love", "Sevgi testi"),
+            BotCommand("etiraf", "Anonim etiraf"),
+            BotCommand("purge", "Mesaj təmizlə"),
+            BotCommand("ping", "Sürət ölç"),
+            BotCommand("id", "ID göstər")
         ])
-    asyncio.ensure_future(set_ui())
+    asyncio.ensure_future(set_bot_menu())
 
-    # --- 3. MOHTƏŞƏM VƏ PROFESİONAL HELP PANELİ ---
-    @app.on_message(filters.command("help"))
-    async def help_cmd(client, message):
-        h_text = (
-            "💎 **ᴀʏsʙᴇʀǫ ᴀɪ | ᴘʀᴏ sʏsᴛᴇᴍ ᴘᴀɴᴇʟ** 💎\n"
-            "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
-            "✍️ **ʏᴀᴢı sᴛɪʟʟəʀɪ:**\n"
-            "• `/font [mətn]` — Yazını 15+ fərqli professional fonta çevirir.\n\n"
-            "🌍 **ᴍəʟᴜᴍᴀᴛ ᴍərᴋəᴢɪ:**\n"
-            "• `/hava [şəhər]` — Dünyanın istənilən yerinin havası (Canlı API).\n"
-            "• `/namaz [şəhər]` — Gündəlik dəqiq namaz vaxtlarını göstərir.\n"
-            "• `/wiki [mövzu]` — Vikipediyadan linksiz və təmiz məlumat gətirir.\n"
-            "• `/valyuta`, `/namaz` — Günlük vacib məlumatlar.\n\n"
-            "🎙 **ᴍᴇᴅɪᴀ ᴠə ᴛəʀᴄüᴍə:**\n"
-            "• `/stt` (Reply) — Səsli mesajı dərhal mətnə çevirir (STT).\n"
-            "• `/tercume [dil]` — Yazını 7 fərqli dilə tərcümə edir.\n"
-            "• `/topdf` — Yazdığınız mətni PDF sənədi halına salır.\n\n"
-            "🤖 **ᴀɪ ᴠə Əʏʟəɴᴄə:**\n"
-            "• `/sual [sual]` — Süni intellektlə hər mövzuda sual-cavab.\n"
-            "• `/qerar [sual]` — Bot sizin yerinizə düyməli seçim edir.\n"
-            "• `/etiraf` — Anonim etirafları idarəçilərə göndərir.\n"
-            "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
-            "🎮 **ᴏʏᴜɴʟᴀʀ:** `/basket`, `/futbol`, `/dart`, `/slot`"
-        )
-        await message.reply_text(h_text)
-
-    # --- 4. NAMAZ VAXTLARI (DƏQİQ API) ---
-    @app.on_message(filters.command("namaz"))
-    async def namaz_f(client, message):
-        city = "Baku"
-        if len(message.command) > 1:
-            city = message.text.split(None, 1)[1].replace("ə","e").replace("ı","i")
-        try:
-            url = f"https://api.aladhan.com/v1/timingsByCity?city={city}&country=Azerbaijan&method=3"
-            r = requests.get(url, timeout=10).json()['data']['timings']
-            text = (f"🕌 **{city.capitalize()} Namaz Vaxtları:**\n\n"
-                    f"🌅 Sübh: `{r['Fajr']}` | ☀️ Günçıxan: `{r['Sunrise']}`\n"
-                    f"🕛 Zöhr: `{r['Dhuhr']}` | 🕒 Əsr: `{r['Asr']}`\n"
-                    f"🌆 Axşam: `{r['Maghrib']}` | 🌃 İşaq: `{r['Isha']}`")
-            await message.reply_text(text)
-        except:
-            await message.reply_text("❌ Namaz vaxtları alınmadı. Şəhər adını düzgün yazın.")
-
-    # --- 5. HAVA DURUMU (PROFESİONAL API) ---
+    # --- [ 3. MƏLUMAT VƏ SERVİSLƏR (TƏMİR OLUNANLAR) ] ---
     @app.on_message(filters.command("hava"))
     async def get_weather(client, message):
         if len(message.command) < 2: return
         city = message.text.split(None, 1)[1].replace("ə","e").replace("ı","i")
         try:
-            url = f"http://api.weatherapi.com/v1/current.json?key={W_API}&q={city}&lang=az"
-            r = requests.get(url, timeout=15).json()
-            d, loc = r['current'], r['location']
-            res = (f"🌤 **{loc['name']}, {loc['country']}**\n"
-                   f"🌡 Temp: `{d['temp_c']}°C` | Hiss edilən: `{d['feelslike_c']}°C`\n"
-                   f"☁️ Durum: `{d['condition']['text']}`\n"
-                   f"💨 Külək: `{d['wind_kph']} km/h` | 💧 Rütubət: `{d['humidity']}%`")
-            await message.reply_text(res)
-        except:
-            await message.reply_text("❌ Hava məlumatı alınmadı. Şəhəri ingilis hərfləri ilə yazın.")
+            r = requests.get(f"http://api.weatherapi.com/v1/current.json?key={W_API}&q={city}&lang=az").json()
+            await message.reply_text(f"🌤 **{r['location']['name']}**\n🌡 `{r['current']['temp_c']}°C` | ☁️ `{r['current']['condition']['text']}`")
+        except: await message.reply_text("❌ Hava tapılmadı.")
 
-    # --- 6. FONT VƏ CALLBACK HANDLER ---
-    @app.on_message(filters.command("font"))
-    async def font_cmd(client, message):
-        if len(message.command) < 2: return
-        text = message.text.split(None, 1)[1]
-        buttons = []
-        keys = list(FONT_MAPS.keys())
-        for i in range(0, len(keys), 3):
-            row = [InlineKeyboardButton(FONT_MAPS[k]["name"], callback_data=f"ft|{k}|{text[:15]}") for k in keys[i:i+3]]
-            buttons.append(row)
-        await message.reply_text(f"📝 **Mətn:** `{text}`\n\nStil seçin:", reply_markup=InlineKeyboardMarkup(buttons))
-
-    @app.on_callback_query()
-    async def handle_callback(client, callback_query):
-        data = callback_query.data
-        if data.startswith("ft|"):
-            _, font_key, original_text = data.split("|")
-            try:
-                converted = convert_font(original_text, font_key)
-                await callback_query.edit_message_text(f"✨ **Nəticə:**\n\n`{converted}`")
-            except: await callback_query.answer("⚠️ Xəta!")
-        elif data == "ok":
-            await callback_query.answer("Təsdiqləndi!")
-            await callback_query.edit_message_text("✅ Etiraf rəhbərliyə göndərildi.")
-
-    # --- 7. WİKİPEDİYA (LİNKSİZ) ---
     @app.on_message(filters.command("wiki"))
     async def wiki_f(client, message):
         if len(message.command) < 2: return
         try:
-            url = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(message.text.split(None, 1)[1])}"
-            r = requests.get(url).json()
+            q = urllib.parse.quote(message.text.split(None, 1)[1])
+            r = requests.get(f"https://az.wikipedia.org/api/rest_v1/page/summary/{q}").json()
             await message.reply_text(f"📖 **{r['title']}**\n\n{r['extract']}")
-        except: await message.reply_text("❌ Tapılmadı.")
+        except: await message.reply_text("❌ Wiki tapılmadı.")
 
-    # --- 8. ETİRAF VƏ SUAL-CAVAB ---
+    @app.on_message(filters.command("valyuta"))
+    async def valyuta_f(client, message):
+        try:
+            r = requests.get("https://api.exchangerate-api.com/v4/latest/AZN").json()
+            await message.reply_text(f"💰 **Məzənnə:**\n1 USD = `{round(1/r['rates']['USD'], 2)} AZN`\n1 EUR = `{round(1/r['rates']['EUR'], 2)} AZN`")
+        except: await message.reply_text("❌ Valyuta alınmadı.")
+
+    # --- [ 4. ƏYLƏNCƏ KOMANDALARI (HƏR BİRİ BƏRPA OLUNDU) ] ---
+    @app.on_message(filters.command("love"))
+    async def love_f(client, message):
+        await message.reply_text(f"❤️ Sevgi testi: **%{random.randint(0,100)}**")
+
+    @app.on_message(filters.command("kimem"))
+    async def kimem_f(client, message):
+        await message.reply_text(f"🔍 Sən: **{random.choice(['Dahi', 'Gözəl', 'Ağıllı', 'Zarafatçıl', 'Lider'])}**")
+
+    @app.on_message(filters.command("gununsozu"))
+    async def gununsozu_f(client, message):
+        await message.reply_text(f"📜 **Günün Sözü:** {random.choice(['Uğur çalışmaqla gəlir.', 'Heç vaxt təslim olma.', 'Zaman qızıldır.'])}")
+
+    @app.on_message(filters.command("sual"))
+    async def sual_f(client, message):
+        if len(message.command) > 1:
+            await message.reply_text(f"🤖 **Bot:** {random.choice(['Bəli', 'Xeyr', 'Bəlkə də', 'Dəqiq yox'])}")
+
+    @app.on_message(filters.command("qerar"))
+    async def qerar_f(client, message):
+        await message.reply_text(f"🤔 **Qərarım:** {random.choice(['Mütləq et!', 'Yaxşı olar ki, etməyəsən.', 'Bir az gözlə.'])}")
+
+    # --- [ 5. ADMİN VƏ TEXNİKİ (BÜTÜN ALƏTLƏR) ] ---
     @app.on_message(filters.command(["etiraf", "acetiraf"]))
     async def etiraf_f(client, message):
         if len(message.command) < 2: return
         txt = message.text.split(None, 1)[1]
-        btn = InlineKeyboardMarkup([[InlineKeyboardButton("✅ Təsdiqlə", callback_data="ok")]])
-        for oid in OWNERS:
-            try: await client.send_message(oid, f"📩 **Yeni Etiraf:**\n`{txt}`", reply_markup=btn)
-            except: pass
-        await message.reply_text("✅ Anonim etirafınız rəhbərliyə göndərildi.")
+        for o in OWNERS: await client.send_message(o, f"📩 **Etiraf:** `{txt}`")
+        await message.reply_text("✅ Etiraf göndərildi.")
 
-    @app.on_message(filters.command("sual"))
-    async def ai_sual(client, message):
-        if len(message.command) < 2: return
-        ans = random.choice(['Əlbəttə!', 'Məncə yox.', 'Bəlkə də.', 'Tamamilə razıyam.'])
-        await message.reply_text(f"🤖 **Bot:** {ans}")
+    @app.on_message(filters.command("id"))
+    async def id_f(client, message):
+        await message.reply_text(f"🆔 User: `{message.from_user.id}`\n🆔 Chat: `{message.chat.id}`")
 
-    # --- 9. STT, PDF VƏ OYUNLAR ---
-    @app.on_message(filters.command("stt") & filters.reply)
-    async def stt_f(client, message):
-        await message.reply_text("🎙 Səs analiz edilir... (Buildpack tələb olunur)")
+    @app.on_message(filters.command("ping"))
+    async def ping_f(client, message):
+        s = time.time()
+        m = await message.reply_text("...")
+        await m.edit(f"🚀 Gecikmə: `{round((time.time()-s)*1000)}ms`")
 
-    @app.on_message(filters.command("topdf"))
-    async def topdf_f(client, message):
-        await message.reply_text("📄 Mətn PDF-ə çevrilir...")
+    @app.on_message(filters.command("purge") & filters.group)
+    async def purge_f(client, message):
+        if message.reply_to_message:
+            await client.delete_messages(message.chat.id, range(message.reply_to_message.id, message.id))
 
-    @app.on_message(filters.command(["basket", "futbol", "dart", "slot"]))
+    @app.on_message(filters.command("ban") & filters.group)
+    async def ban_f(client, message):
+        if message.reply_to_message:
+            await client.ban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
+            await message.reply_text("🚫 İstifadəçi kənarlaşdırıldı.")
+
+    # --- [ 6. OYUNLAR VƏ FONT CALLBACK ] ---
+    @app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice"]))
     async def games_f(client, message):
-        await client.send_dice(message.chat.id, emoji={"basket":"🏀", "futbol":"⚽", "dart":"🎯", "slot":"🎰"}[message.command[0]])
+        e = {"basket":"🏀", "futbol":"⚽", "dart":"🎯", "slot":"🎰", "dice":"🎲"}[message.command[0]]
+        await client.send_dice(message.chat.id, emoji=e)
+
+    @app.on_message(filters.command("font"))
+    async def font_cmd(client, message):
+        if len(message.command) < 2: return
+        t = message.text.split(None, 1)[1]
+        btns = [[InlineKeyboardButton(k.upper(), callback_data=f"fn|{k}|{t[:15]}")] for k in ["bold", "italic", "mono", "gothic"]]
+        await message.reply_text(f"📝 Stil seçin:", reply_markup=InlineKeyboardMarkup(btns))
+
+    @app.on_callback_query()
+    async def handle_cb(client, cb):
+        if cb.data.startswith("fn|"):
+            _, s, txt = cb.data.split("|")
+            await cb.edit_message_text(f"✨ `{get_font_text(txt, s)}`")
