@@ -130,7 +130,7 @@ def init_plugins(app, get_db_connection):
         )
         await message.reply_text(help_text)
 
-    # --- 🔤 TƏRCÜMƏ (HƏM QISA, HƏM UZUN KOMANDA) ---
+    # --- 🔤 TƏRCÜMƏ ---
     @app.on_message(filters.command(["tercume", "traz", "tren", "trru", "trtr", "trde", "trfr"]))
     async def multi_translate(client, message):
         if not message.reply_to_message:
@@ -139,14 +139,13 @@ def init_plugins(app, get_db_connection):
         text = message.reply_to_message.text or message.reply_to_message.caption
         if not text: return
 
-        # Komandanı analiz etmək
         cmd = message.command[0].lower()
         if cmd == "tercume":
             if len(message.command) < 2:
                 return await message.reply_text("💡 Nümunə: `/tercume en` (Mesaja reply verərək)")
             target_lang = message.command[1].lower()
         else:
-            target_lang = cmd[2:] # "traz" -> "az" hissəsini götürür
+            target_lang = cmd[2:]
 
         valid_langs = ["az", "en", "ru", "tr", "de", "fr"]
         if target_lang not in valid_langs:
@@ -159,7 +158,7 @@ def init_plugins(app, get_db_connection):
         except:
             await message.reply_text("❌ Tərcümə zamanı xəta baş verdi.")
 
-    # --- QALAN BÜTÜN FUNKSİYALAR (SİLMƏDƏN) ---
+    # --- TOPSİRALAMA ---
     @app.on_message(filters.command("topsiralama") & filters.group)
     async def top_ranks(client, message):
         c_id = message.chat.id
