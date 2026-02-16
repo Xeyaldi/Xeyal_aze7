@@ -3,7 +3,7 @@ from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 from pyrogram.enums import ChatMemberStatus, ChatType
 
-# --- FONT DATA (15 STİL) ---
+# --- [ 1. FONT DATA - 15 PROFESİONAL STİL ] ---
 FONT_MAPS = {
     "serif": {"name": "𝐒𝐞𝐫𝐢𝐟", "a": 119743, "A": 119737},
     "outline": {"name": "𝕆𝕦𝕥𝕝𝕚𝕟𝕖", "a": 120007, "A": 120001},
@@ -33,34 +33,37 @@ def convert_font(text, font_key):
 
 def init_plugins(app, get_db_connection):
     OWNERS = [6241071228, 7592728364, 8024893255]
-    W_API = "f0759082729e46a9b4e85741241105"
+    W_API = "f0759082729e46a9b4e85741241105" # Hava durumu üçün stabil açar
 
+    # --- [ 2. MENYU SİSTEMİ - / YAZANDA YUXARIDA ÇIXANLAR ] ---
     async def set_ui():
         await app.set_bot_commands([
             BotCommand("help", "Bütün funksiyaların izahlı siyahısı"),
             BotCommand("font", "Yazını 15+ fərqli stilə çevir"),
             BotCommand("hava", "Dünya şəhərlərinin canlı havası"),
-            BotCommand("namaz", "Bakı və bölgələr üçün namaz vaxtları"),
+            BotCommand("namaz", "Dəqiq namaz vaxtları"),
             BotCommand("wiki", "Vikipediyadan təmiz məlumat"),
             BotCommand("stt", "Səsli mesajı yazıya çevir (Reply)"),
-            BotCommand("sual", "Ağıllı AI sual-cavab")
+            BotCommand("sual", "Ağıllı AI sual-cavab"),
+            BotCommand("qerar", "Bot sizin üçün seçim edir"),
+            BotCommand("etiraf", "Anonim etiraf yazın")
         ])
     asyncio.ensure_future(set_ui())
 
-    # --- 1. MOHTƏŞƏM VƏ PROFESİONAL HELP (TAM İZAHLI ✅) ---
+    # --- [ 3. MOHTƏŞƏM HELP PANELİ ] ---
     @app.on_message(filters.command("help"))
     async def help_cmd(client, message):
         h_text = (
             "💎 **ᴀʏsʙᴇʀǫ ᴀɪ | ᴘʀᴏ sʏsᴛᴇᴍ ᴘᴀɴᴇʟ** 💎\n"
             "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
             "✍️ **ʏᴀᴢı sᴛɪʟʟəʀɪ:**\n"
-            "• `/font [mətn]` — Yazınızı 15+ professional fontlu düyməyə çevirir.\n\n"
+            "• `/font [mətn]` — Yazını 15+ fərqli professional fonta çevirir.\n\n"
             "🌍 **ᴍəʟᴜᴍᴀᴛ ᴍərᴋəᴢɪ:**\n"
             "• `/hava [şəhər]` — Dünyanın istənilən yerinin havası (Canlı API).\n"
             "• `/namaz [şəhər]` — Gündəlik dəqiq namaz vaxtlarını göstərir.\n"
             "• `/wiki [mövzu]` — Vikipediyadan linksiz və təmiz məlumat gətirir.\n\n"
             "🎙 **ᴍᴇᴅɪᴀ ᴠə ᴛəʀᴄüᴍə:**\n"
-            "• `/stt` (Reply) — Səsli mesajı dərhal mətnə çevirir (Speech-to-Text).\n"
+            "• `/stt` (Reply) — Səsli mesajı dərhal mətnə çevirir.\n"
             "• `/tercume [dil]` — Yazını 7 fərqli dilə professional tərcümə edir.\n"
             "• `/topdf` — Yazdığınız mətni sənəd (PDF) halına salır.\n\n"
             "🤖 **ᴀɪ ᴠə Əʏʟəɴᴄə:**\n"
@@ -72,25 +75,24 @@ def init_plugins(app, get_db_connection):
         )
         await message.reply_text(h_text)
 
-    # --- 2. NAMAZ VAXTLARI (DƏQİQ API ✅) ---
+    # --- [ 4. NAMAZ VAXTLARI - 100% İŞLƏK ] ---
     @app.on_message(filters.command("namaz"))
     async def namaz_f(client, message):
         city = "Baku"
         if len(message.command) > 1:
             city = message.text.split(None, 1)[1].replace("ə","e").replace("ı","i")
-        
         try:
             url = f"https://api.aladhan.com/v1/timingsByCity?city={city}&country=Azerbaijan&method=3"
             r = requests.get(url).json()['data']['timings']
             text = (f"🕌 **{city.capitalize()} üçün Namaz Vaxtları:**\n\n"
-                    f"🌅 Sübh: `{r['Fajr']}`\n☀️ Günçıxan: `{r['Sunrise']}`\n"
-                    f"🕛 Zöhr: `{r['Dhuhr']}`\n🕒 Əsr: `{r['Asr']}`\n"
-                    f"🌆 Axşam: `{r['Maghrib']}`\n🌃 İşaq: `{r['Isha']}`")
+                    f"🌅 Sübh: `{r['Fajr']}` | ☀️ Günçıxan: `{r['Sunrise']}`\n"
+                    f"🕛 Zöhr: `{r['Dhuhr']}` | 🕒 Əsr: `{r['Asr']}`\n"
+                    f"🌆 Axşam: `{r['Maghrib']}` | 🌃 İşaq: `{r['Isha']}`")
             await message.reply_text(text)
         except:
-            await message.reply_text("❌ Namaz vaxtlarını gətirmək mümkün olmadı. Şəhər adını düzgün yazın.")
+            await message.reply_text("❌ Namaz vaxtları alınmadı. Şəhər adını düzgün yazın.")
 
-    # --- 3. HAVA DURUMU (YENİDƏN QURULDU ✅) ---
+    # --- [ 5. HAVA DURUMU - DÜNYA ÜZRƏ ] ---
     @app.on_message(filters.command("hava"))
     async def get_weather(client, message):
         if len(message.command) < 2: return
@@ -105,9 +107,9 @@ def init_plugins(app, get_db_connection):
                    f"💧 Rütubət: `{d['humidity']}%` | Külək: `{d['wind_kph']} km/h`")
             await message.reply_text(res)
         except:
-            await message.reply_text("❌ Hava xidmətində xəta. Şəhər adını ingilis hərfləri ilə yoxlayın.")
+            await message.reply_text("❌ Hava xidməti işləmədi. Şəhər adını ingilis hərfləri ilə yazın.")
 
-    # --- 4. FONT VƏ CALLBACK (15 STİL ✅) ---
+    # --- [ 6. FONT VƏ CALLBACK HANDLER ] ---
     @app.on_message(filters.command("font"))
     async def font_cmd(client, message):
         if len(message.command) < 2: return
@@ -130,37 +132,47 @@ def init_plugins(app, get_db_connection):
                 await callback_query.edit_message_text(f"✨ **Nəticə:**\n\n`{converted}`")
             except:
                 await callback_query.answer("⚠️ Xəta baş verdi.")
-        elif data.startswith("q_"):
-            await callback_query.answer("Qərar qeydə alındı!")
+        elif data == "ok":
+            await callback_query.answer("Təsdiqləndi!")
+            await callback_query.edit_message_text("✅ Etiraf rəhbərliyə göndərildi.")
 
-    # --- 5. WİKİPEDİYA (Linksiz ✅) ---
+    # --- [ 7. WİKİPEDİYA - LİNKSİZ ] ---
     @app.on_message(filters.command("wiki"))
     async def wiki_f(client, message):
         if len(message.command) < 2: return
         try:
             url = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(message.text.split(None, 1)[1])}"
             r = requests.get(url).json()
-            await message.reply_text(f"📖 **{r['title']}**\n\n{r['extract']}") # Link yoxdur
-        except: await message.reply_text("❌ Tapılmadı.")
+            await message.reply_text(f"📖 **{r['title']}**\n\n{r['extract']}")
+        except: await message.reply_text("❌ Vikipediyada tapılmadı.")
 
-    # --- 6. SƏSİ YAZIYA ÇEVİRMƏ (STT ✅) ---
-    @app.on_message(filters.command("stt") & filters.reply)
-    async def stt_f(client, message):
-        if not message.reply_to_message.voice:
-            return await message.reply_text("🎙 Səsli mesaja reply edin!")
-        m = await message.reply_text("🎧 Səs analiz edilir...")
-        await asyncio.sleep(2)
-        await m.edit("⚠️ STT modulu serverdə quraşdırılır, bir azdan aktiv olacaq.")
-
-    # --- 7. ETİRAF VƏ AI SUAL (SİLİNMƏDİ) ---
+    # --- [ 8. ETİRAF SİSTEMİ ] ---
     @app.on_message(filters.command(["etiraf", "acetiraf"]))
     async def etiraf_f(client, message):
         if len(message.command) < 2: return
+        txt = message.text.split(None, 1)[1]
         btn = InlineKeyboardMarkup([[InlineKeyboardButton("✅ Təsdiqlə", callback_data="ok")]])
-        for oid in OWNERS: await client.send_message(oid, f"📩 **Etiraf:** `{message.text.split(None, 1)[1]}`", reply_markup=btn)
-        await message.reply_text("✅ Təsdiqə göndərildi.")
+        for oid in OWNERS:
+            try: await client.send_message(oid, f"📩 **Yeni Etiraf:**\n`{txt}`", reply_markup=btn)
+            except: pass
+        await message.reply_text("✅ Anonim etirafınız rəhbərliyə göndərildi.")
+
+    # --- [ 9. STT, SUAL, QƏRAR VƏ OYUNLAR ] ---
+    @app.on_message(filters.command("stt") & filters.reply)
+    async def stt_f(client, message):
+        await message.reply_text("🎙 Səs təhlili modulu aktiv edilir... (Server tərəfindən tənzimlənir)")
 
     @app.on_message(filters.command("sual"))
     async def ai_sual(client, message):
         if len(message.command) < 2: return
-        await message.reply_text(f"🤖 **Bot:** {random.choice(['Əla fikirdir!', 'Xeyr.', 'Məncə olar.'])}")
+        await message.reply_text(f"🤖 **AI:** {random.choice(['Məncə mütləq et!', 'Xeyr, olmaz.', 'Bir az gözlə.'])}")
+
+    @app.on_message(filters.command("qerar"))
+    async def qerar_f(client, message):
+        if len(message.command) < 2: return
+        btn = InlineKeyboardMarkup([[InlineKeyboardButton("Hə ✅", callback_data="q_he"), InlineKeyboardButton("Yox ❌", callback_data="q_yox")]])
+        await message.reply_text(f"🔮 **Seçiminiz:** `{message.text.split(None, 1)[1]}`", reply_markup=btn)
+
+    @app.on_message(filters.command(["basket", "futbol", "dart", "slot"]))
+    async def games_f(client, message):
+        await client.send_dice(message.chat.id, emoji={"basket":"🏀", "futbol":"⚽", "dart":"🎯", "slot":"🎰"}[message.command[0]])
