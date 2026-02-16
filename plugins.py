@@ -9,7 +9,7 @@ from reportlab.lib.pagesizes import A4
 # --- MƏLUMAT BAZASI & KARMA ---
 user_karma = {} 
 
-# --- ADMİN YOXLAMA (Orijinal) ---
+# --- ADMİN YOXLAMA ---
 async def check_admin(client, message, owners):
     if message.chat.type == ChatType.PRIVATE: return True
     if message.from_user and message.from_user.id in owners: return True
@@ -18,7 +18,7 @@ async def check_admin(client, message, owners):
         return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
     except: return False
 
-# --- MENTION FUNKSİYASI (Orijinal) ---
+# --- MENTION FUNKSİYASI ---
 async def get_mention(client, user_input):
     try:
         user = await client.get_users(user_input)
@@ -29,23 +29,10 @@ def init_plugins(app, get_db_connection):
     OWNERS = [6241071228, 7592728364, 8024893255]
     TARGET_GROUP = "@sohbetqruprc"
 
-    # --- KOMANDALARIN MENYUSU ---
-    async def set_commands():
-        commands = [
-            BotCommand("help", "📚 Geniş kömək menyusu"),
-            BotCommand("tercume", "🌍 Tərcümə (az/en/ru/tr/de/fr)"),
-            BotCommand("topsiralama", "🎖️ Aktivlik Reytinqi"),
-            BotCommand("proqnoz", "🔮 Kahin Proqnozu"),
-            BotCommand("qizilfond", "🌟 Qızıl Fond"),
-            BotCommand("pdf", "📄 Mesajı PDF et"),
-            BotCommand("etiraf", "🤫 Anonim etiraf"),
-            BotCommand("id", "🆔 ID-ləri göstərər")
-        ]
-        await app.set_bot_commands(commands)
-
     # --- GLOBAL HANDLER (Karma & Orijinal Reaksiyalar) ---
     @app.on_message(filters.group & ~filters.bot, group=-1)
     async def global_handler(client, message):
+        if not message.from_user: return
         c_id, u_id = message.chat.id, message.from_user.id
         if message.reply_to_message and message.reply_to_message.from_user:
             target_id = message.reply_to_message.from_user.id
@@ -58,7 +45,7 @@ def init_plugins(app, get_db_connection):
                 user_karma[c_id][target_id] = user_karma[c_id].get(target_id, 0) - 1
                 await message.reply_text(f"➖ **{message.reply_to_message.from_user.first_name}** karması azaldı!")
 
-    # --- 📚 HELP MENYU (Orijinal Struktur + Yeni Dizayn) ---
+    # --- 📚 HELP MENYU ---
     @app.on_message(filters.command("help"))
     async def help_cmd(client, message):
         help_text = (
@@ -81,7 +68,7 @@ def init_plugins(app, get_db_connection):
         )
         await message.reply_text(help_text)
 
-    # --- 🤫 ETİRAF SİSTEMİ (Orijinal) ---
+    # --- 🤫 ETİRAF SİSTEMİ ---
     @app.on_message(filters.command(["etiraf", "acetiraf"]))
     async def etiraf_handler(client, message):
         if len(message.command) < 2: return
@@ -95,14 +82,13 @@ def init_plugins(app, get_db_connection):
 
     @app.on_callback_query(filters.regex("acc_et"))
     async def acc_callback(client, callback_query):
-        # Orijinal mətn parçalama məntiqi
         try:
             etiraf_txt = callback_query.message.text.split('📩 Etiraf: ')[1].split('👤 Kimdən:')[0]
             await client.send_message(TARGET_GROUP, f"🤫 **Etiraf:**\n\n{etiraf_txt}")
             await callback_query.edit_message_text("✅ Təsdiqləndi.")
         except: pass
 
-    # --- 🖼 AĞ-QARA ŞƏKİL EFFEKTİ (Orijinal) ---
+    # --- 🖼 AĞ-QARA ŞƏKİL EFFEKTİ ---
     @app.on_message(filters.photo & filters.group)
     async def bw_photo(client, message):
         path = await message.download()
@@ -112,7 +98,7 @@ def init_plugins(app, get_db_connection):
         if os.path.exists(path): os.remove(path)
         if os.path.exists("bw.jpg"): os.remove("bw.jpg")
 
-    # --- 🔤 TƏRCÜMƏ (Orijinal) ---
+    # --- 🔤 TƏRCÜMƏ ---
     @app.on_message(filters.command(["tercume", "traz", "tren", "trru", "trtr", "trde", "trfr"]))
     async def multi_translate(client, message):
         if not message.reply_to_message: return await message.reply_text("❌ Reply verin!")
@@ -126,7 +112,7 @@ def init_plugins(app, get_db_connection):
             await message.reply_text(f"🌍 **Tərcümə ({target_lang.upper()}):**\n\n`{res[0][0][0]}`")
         except: await message.reply_text("❌ Xəta.")
 
-    # --- 📄 PDF (Orijinal - Tam Bərpa) ---
+    # --- 📄 PDF SİSTEMİ ---
     @app.on_message(filters.command("pdf"))
     async def instant_pdf(client, message):
         if not message.reply_to_message: return await message.reply_text("❌ Reply verin!")
@@ -144,52 +130,30 @@ def init_plugins(app, get_db_connection):
         c.save()
         await message.reply_document(pdf_name, caption="📄 PDF hazırdır!"); os.remove(pdf_name)
 
-    # --- 🔮 VİZYON: PROQNOZ ---
-    @app.on_message(filters.command("proqnoz"))
-    async def oracle_cmd(client, message):
-        preds = ["Qrupda tezliklə maraqlı hadisə olacaq! ✨", "Sənin üçün bu gün uğurlu keçəcək! 🍀"]
-        await message.reply_text(f"🔮 **Kahin Deyir:** {random.choice(preds)}")
-
-    # --- 💰 MƏLUMATLAR (Orijinal) ---
-    @app.on_message(filters.command("kripto"))
-    async def crypto_cmd(client, message):
-        r = requests.get("https://api.binance.com/api/v3/ticker/price?symbols=[\"BTCUSDT\",\"ETHUSDT\"]").json()
-        await message.reply_text(f"🪙 BTC: `${float(r[0]['price']):,.2f}`\n💠 ETH: `${float(r[1]['price']):,.2f}`")
-
-    @app.on_message(filters.command("valyuta"))
-    async def val_cmd(client, message):
-        r = requests.get("https://api.exchangerate-api.com/v4/latest/AZN").json()
-        await message.reply_text(f"💰 USD/AZN: `{1/r['rates']['USD']:.2f}`")
-
-    @app.on_message(filters.command("wiki"))
-    async def wiki_cmd(client, message):
-        wikipedia.set_lang("az")
-        try: await message.reply_text(f"📖 {wikipedia.summary(message.text.split(None, 1)[1], sentences=2)}")
-        except: await message.reply_text("❌ Tapılmadı.")
-
-    @app.on_message(filters.command("namaz"))
-    async def namaz_cmd(client, message):
-        await message.reply_text("🕋 Namaz vaxtları: Bakı üçün (12:45, 15:50...)")
-
-    # --- 🎮 ƏYLƏNCƏ (Orijinal + Basketbol) ---
+    # --- 💖 ƏYLƏNCƏ: LOVE (TAM) ---
     @app.on_message(filters.command("love"))
     async def love_cmd(client, message):
         target = message.text.split(None, 1)[1] if len(message.command) > 1 else (message.reply_to_message.from_user.id if message.reply_to_message else None)
-        if not target: return
+        if not target: return await message.reply_text("💘 Reply verin və ya ID yazın!")
         u2 = await get_mention(client, target)
         p = int(hashlib.md5(f"{message.from_user.id}{target}".encode()).hexdigest(), 16) % 101
         await message.reply_text(f"💘 {u2} ilə uyğunluq: `{p}%`")
 
+    # --- 🥊 ƏYLƏNCƏ: SLAP (TAM) ---
     @app.on_message(filters.command("slap"))
     async def slap_cmd(client, message):
-        await message.reply_text(f"🥊 Şapalaqlandı!")
+        if message.reply_to_message:
+            await message.reply_text(f"🥊 **{message.reply_to_message.from_user.first_name}** möhkəm şapalaqlandı!")
+        else:
+            await message.reply_text("🥊 Kimi vurmaq istəyirsən? Reply ver!")
 
+    # --- 🎲 OYUNLAR ---
     @app.on_message(filters.command(["dice", "slot", "futbol", "basket"]))
     async def games(client, message):
         em = {"dice":"🎲", "slot":"🎰", "futbol":"⚽", "basket":"🏀"}
         await client.send_dice(message.chat.id, emoji=em[message.command[0]])
 
-    # --- 🛠 ADMİN & SİSTEM (Orijinal) ---
+    # --- 🛠 ADMİN & SİSTEM ---
     @app.on_message(filters.command("purge") & filters.group)
     async def purge_func(client, message):
         if not await check_admin(client, message, OWNERS): return
@@ -198,10 +162,30 @@ def init_plugins(app, get_db_connection):
         for i in range(0, len(ids), 100): await client.delete_messages(message.chat.id, ids[i:i+100])
 
     @app.on_message(filters.command("id"))
-    async def id_cmd(client, message): await message.reply_text(f"🆔 Sizin ID: `{message.from_user.id}`\n🆔 Çat ID: `{message.chat.id}`")
+    async def id_cmd(client, message): await message.reply_text(f"🆔 ID: `{message.from_user.id}`\n🆔 Çat: `{message.chat.id}`")
 
     @app.on_message(filters.command("qr"))
     async def qr_cmd(client, message):
         if len(message.command) < 2: return
         txt = urllib.parse.quote(message.text.split(None, 1)[1])
         await message.reply_photo(f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={txt}")
+
+    # --- 💰 MƏLUMATLAR ---
+    @app.on_message(filters.command("kripto"))
+    async def crypto_cmd(client, message):
+        try:
+            r = requests.get("https://api.binance.com/api/v3/ticker/price?symbols=[\"BTCUSDT\",\"ETHUSDT\"]").json()
+            await message.reply_text(f"🪙 BTC: `${float(r[0]['price']):,.2f}`\n💠 ETH: `${float(r[1]['price']):,.2f}`")
+        except: pass
+
+    @app.on_message(filters.command("wiki"))
+    async def wiki_cmd(client, message):
+        if len(message.command) < 2: return
+        wikipedia.set_lang("az")
+        try: await message.reply_text(f"📖 {wikipedia.summary(message.text.split(None, 1)[1], sentences=2)}")
+        except: await message.reply_text("❌ Tapılmadı.")
+
+    @app.on_message(filters.command("proqnoz"))
+    async def oracle_cmd(client, message):
+        preds = ["Maraqlı hadisə olacaq! ✨", "Bu gün uğurlu keçəcək! 🍀", "💌 Xoş xəbər gələcək!"]
+        await message.reply_text(f"🔮 **Kahin:** {random.choice(preds)}")         
