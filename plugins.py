@@ -2,8 +2,6 @@ import os, asyncio, requests, urllib.parse, random, wikipedia
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 from pyrogram.enums import ChatMemberStatus, ChatType
-from pyowm import OWM
-from pyowm.utils.config import get_default_config
 
 # --- YARDIMÇI FUNKSİYA: ADMİN YOXLAMA ---
 async def check_admin(client, message, owners):
@@ -15,15 +13,13 @@ async def check_admin(client, message, owners):
     except: return False
 
 def init_plugins(app, get_db_connection):
-    # Sənin verdiyin Owners və API Key məlumatları
+    # Sənin verdiyin Owners məlumatları
     OWNERS = [6241071228, 7592728364, 8024893255]
-    WEATHER_API_KEY = "07f6c94ce1ce87c4ad51a713b186762f"
 
     # --- KOMANDALARIN MENYUSU (Telegramda / yazanda siyahı çıxması üçün) ---
     async def set_commands():
         commands = [
             BotCommand("help", "📚 Botun geniş kömək menyusu"),
-            BotCommand("hava", "🌤 Şəhər üzrə hava durumu"),
             BotCommand("valyuta", "💰 Günlük valyuta məzənnələri"),
             BotCommand("wiki", "📖 Vikipediyada geniş axtarış"),
             BotCommand("namaz", "🕋 Azərbaycan şəhərləri üçün namaz vaxtları"),
@@ -31,11 +27,11 @@ def init_plugins(app, get_db_connection):
             BotCommand("etiraf", "🤫 Tam gizli (anonim) etiraf"),
             BotCommand("acetiraf", "👤 Adınızla görünən etiraf"),
             BotCommand("purge", "🧹 Qrupda mesajları təmizləyər (Admin)"),
+            BotCommand("id", "🆔 Sizin və qrupun ID-sini göstərər"),
             BotCommand("dice", "🎲 Şans zəri atar"),
             BotCommand("slot", "🎰 Slot maşını oyunu"),
-            BotCommand("futbol", "⚽ Futbol qolu atma oyunu"),
-            BotCommand("basket", "🏀 Basketbol oyunu"),
-            BotCommand("dart", "🎯 Dart atma oyunu")
+            BotCommand("futbol", "⚽ Futbol oyunu"),
+            BotCommand("basket", "🏀 Basketbol oyunu")
         ]
         await app.set_bot_commands(commands)
 
@@ -43,9 +39,9 @@ def init_plugins(app, get_db_connection):
     @app.on_message(filters.command("start"))
     async def start_cmd(client, message):
         await set_commands()
-        await message.reply_text("✨ **Bot uğurla işə düşdü!**\n\nKomandalar siyahısı artıq `/` menyusunda görünür. Ətraflı məlumat üçün `/help` yazın.")
+        await message.reply_text("✨ **Bot uğurla işə düşdü!**\n\nKomandalar siyahısı artıq `/` menyusunda aktivdir. `/help` yazaraq detallara baxa bilərsiniz.")
 
-    # --- 1. HELP (KÖMƏK MENYUSU - NAXIŞLI DİZAYN) ---
+    # --- 1. HELP (NAXIŞLI DİZAYN) ---
     @app.on_message(filters.command("help"))
     async def help_cmd(client, message):
         help_text = (
@@ -54,10 +50,9 @@ def init_plugins(app, get_db_connection):
             "╚════════════════════╝\n\n"
             "📜 **Ümumi Komandalar:**\n"
             "🔹 `/help` - Bu menyunu göstərər.\n"
-            "🔹 `/id` - Sizin və ya qrupun ID-sini göstərər.\n"
+            "🔹 `/id` - ID məlumatlarını göstərər.\n"
             "🔹 `/ping` - Botun gecikməsini yoxlayar.\n\n"
             "🌍 **Məlumat və Faydalı:**\n"
-            "🔹 `/hava [şəhər]` - Hava temperaturu və vəziyyəti.\n"
             "🔹 `/valyuta` - Günlük Manat kursu.\n"
             "🔹 `/wiki [mövzu]` - Vikipediyadan ətraflı məlumat.\n"
             "🔹 `/namaz [şəhər]` - Gündəlik namaz vaxtları.\n"
@@ -66,10 +61,9 @@ def init_plugins(app, get_db_connection):
             "🔹 `/etiraf [mesaj]` - Sahibələrə anonim mesaj göndərər.\n"
             "🔹 `/acetiraf [mesaj]` - Adınızla birlikdə etiraf göndərər.\n\n"
             "🎮 **Əyləncə və Oyunlar:**\n"
-            "🔹 `/dice`, `/basket`, `/futbol`, `/dart`, `/slot` - Şans oyunları.\n\n"
+            "🔹 `/dice`, `/basket`, `/futbol`, `/slot` - Şans oyunları.\n\n"
             "🛡 **Admin Alətləri:**\n"
-            "🔹 `/purge` - Seçilən mesajdan aşağıdakıları silər.\n"
-            "🔹 `/tagstop` - Davam edən tağ prosesini dayandırar.\n\n"
+            "🔹 `/purge` - Seçilən mesajdan aşağıdakıları silər.\n\n"
             "✨ *Bot heroku vasitəsilə 7/24 aktivdir!*"
         )
         await message.reply_text(help_text)
@@ -126,35 +120,7 @@ def init_plugins(app, get_db_connection):
         except:
             await message.reply_text("❌ Tərcümə zamanı xəta baş verdi.")
 
-    # --- 4. HAVA DURUMU (YOL 1 & 3: PYOWM + SESSION) ---
-    @app.on_message(filters.command("hava"))
-    async def get_weather(client, message):
-        if len(message.command) < 2: return await message.reply_text("🏙 **Şəhər adı yazın.**\nNümunə: `/hava Bakı`")
-        city = message.text.split(None, 1)[1]
-        try:
-            # Əsas Metod: PyOWM Kitabxanası
-            config_dict = get_default_config()
-            config_dict['language'] = 'az'
-            owm = OWM(WEATHER_API_KEY, config_dict)
-            mgr = owm.weather_manager()
-            observation = mgr.weather_at_place(city)
-            w = observation.weather
-            temp = w.temperature('celsius')['temp']
-            status = w.detailed_status
-            await message.reply_text(f"🌤 **Hava: {city.capitalize()}**\n🌡 Temperatur: {temp}°C\n☁️ Vəziyyət: {status.capitalize()}")
-        except:
-            # Alternativ Metod: Birbaşa API Sorğusu
-            try:
-                url = f"http://api.openweathermap.org/data/2.5/weather?q={urllib.parse.quote(city)}&appid={WEATHER_API_KEY}&units=metric&lang=az"
-                r = requests.get(url, timeout=10).json()
-                if r.get("cod") != 200: return await message.reply_text("❌ Şəhər tapılmadı.")
-                temp = r['main']['temp']
-                desc = r['weather'][0]['description']
-                await message.reply_text(f"🌤 **Hava: {r['name']}**\n🌡 Temperatur: {temp}°C\n☁️ Vəziyyət: {desc.capitalize()}")
-            except:
-                await message.reply_text("❌ Hava məlumatı alınarkən xəta baş verdi.")
-
-    # --- 5. VALYUTA ---
+    # --- 4. VALYUTA ---
     @app.on_message(filters.command("valyuta"))
     async def get_valyuta(client, message):
         try:
@@ -172,30 +138,30 @@ def init_plugins(app, get_db_connection):
         except: 
             await message.reply_text("❌ Məzənnə məlumatı alınmadı.")
 
-    # --- 6. VİKİPEDİYA (YOL 1 & 2: WIKIPEDIA LIB + AZ-WIKI API) ---
+    # --- 5. VİKİPEDİYA (GÜCLÜ SORĞU) ---
     @app.on_message(filters.command("wiki"))
     async def wiki_search(client, message):
         if len(message.command) < 2: return await message.reply_text("🔍 **Axtarılacaq mövzunu yazın.**")
         query = message.text.split(None, 1)[1]
         try:
-            # Əsas Metod: Wikipedia Kitabxanası
+            # Öncə kitabxana ilə sınayırıq
             wikipedia.set_lang("az")
             summary = wikipedia.summary(query, sentences=3)
             page = wikipedia.page(query)
             await message.reply_text(f"📖 **{page.title}**\n\n{summary}\n\n🔗 [Ətraflı oxu]({page.url})")
         except:
-            # Alternativ Metod: Birbaşa API Sorğusu
+            # Kitabxana tapmasa API ilə sınayırıq
             try:
                 headers = {'User-Agent': 'Mozilla/5.0'}
                 url = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}"
                 r = requests.get(url, headers=headers, timeout=10)
-                if r.status_code != 200: return await message.reply_text("❌ Bu mövzuda məqalə tapılmadı.")
+                if r.status_code != 200: return await message.reply_text("❌ Məqalə tapılmadı.")
                 res = r.json()
-                await message.reply_text(f"📖 **{res['title']}**\n\n{res['extract'][:800]}...\n\n🔗 [Ətraflı oxu]({res['content_urls']['desktop']['page']})")
+                await message.reply_text(f"📖 **{res['title']}**\n\n{res['extract'][:800]}...\n\n🔗 [Link]({res['content_urls']['desktop']['page']})")
             except:
                 await message.reply_text("❌ Vikipediya ilə əlaqə kəsildi.")
 
-    # --- 7. NAMAZ VAXTLARI ---
+    # --- 6. NAMAZ VAXTLARI ---
     @app.on_message(filters.command("namaz"))
     async def namaz_times(client, message):
         city = message.command[1] if len(message.command) > 1 else "Baku"
@@ -207,7 +173,7 @@ def init_plugins(app, get_db_connection):
         except: 
             await message.reply_text("❌ Namaz vaxtları alınarkən xəta.")
 
-    # --- 8. PURGE (ADMİN) ---
+    # --- 7. PURGE (ADMİN) ---
     @app.on_message(filters.command("purge") & filters.group)
     async def purge_func(client, message):
         if not await check_admin(client, message, OWNERS): return
@@ -223,7 +189,7 @@ def init_plugins(app, get_db_connection):
             await done.delete()
         except: pass
 
-    # --- 9. OYUNLAR ---
+    # --- 8. OYUNLAR ---
     @app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice"]))
     async def games_func(client, message):
         emojis = {"basket":"🏀", "futbol":"⚽", "dart":"🎯", "slot":"🎰", "dice":"🎲"}
@@ -231,3 +197,10 @@ def init_plugins(app, get_db_connection):
             cmd = message.command[0].lower()
             await client.send_dice(message.chat.id, emoji=emojis[cmd])
         except: pass
+
+    # --- 9. ID GÖSTƏRMƏ ---
+    @app.on_message(filters.command("id"))
+    async def get_id(client, message):
+        chat_id = message.chat.id
+        user_id = message.from_user.id if message.from_user else "Bilinmir"
+        await message.reply_text(f"🆔 **Sizin ID:** `{user_id}`\n🆔 **Çat ID:** `{chat_id}`")
