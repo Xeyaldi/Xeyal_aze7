@@ -1,6 +1,8 @@
 pyrogram
 tgcrypto
 requests
+urllib3
+beautifulsoup4
 Pillow
 gTTS
 reportlab
