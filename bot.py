@@ -2,18 +2,14 @@ import os, asyncio, random, psycopg2, requests, urllib.parse, time
 from pyrogram import Client, filters
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
-from pyrogram.errors import FloodWait, PeerIdInvalid, RPCError
+from pyrogram.errors import FloodWait
 
 # --- MODULLARI QOŞMAQ ---
 try:
-    from plugins import init_plugins 
+    from plugins import init_plugins, user_stats # user_stats-ı birbaşa buraya çəkirik
 except ImportError:
     init_plugins = None
-
-try:
-    from stats import init_stats
-except ImportError:
-    init_stats = None
+    user_stats = {}
 
 try:
     from start_module import init_start
@@ -25,23 +21,26 @@ API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
-SESSION_STRING = os.getenv("SESSION") 
+SESSION_STRING = os.getenv("SESSION") # Heroku-dan Session String-i oxuyur
 
 OWNERS = [6241071228, 7592728364, 8024893255] 
-SOHBET_QRUPU = "sohbetqruprc" 
+SOHBET_QRUPU = "https://t.me/sohbetqruprc" 
 
 tag_process = {}
-chatbot_status = {} # Chatbotun qrupda aktiv olub-olmadığını yoxlayır
+chatbot_status = {}
 link_block_status = {}
 
-# --- SİYAHLAR (TAM VƏ TOXUNULMAZ) ---
+# --- SİYAHLAR (QALDI) ---
 BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
 EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉"]
 
-# --- KLİENTLƏR ---
+# --- NORMAL BOT (BOT TOKEN İLƏ) ---
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
+# --- USERBOT (SESSION İLƏ - KEÇMİŞİ OXUMAQ ÜÇÜN) ---
 user_app = Client("user_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
+# --- DATABASE VƏ ADMIN YOXLAMASI ---
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
@@ -53,52 +52,46 @@ async def is_admin(client, message):
         return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
     except: return False
 
-# --- 🤖 CHATBOT MƏNTİQİ (Əlavə etdim ki, silinmiş olmasın) ---
-@app.on_message(filters.text & filters.group & ~filters.bot)
-async def chatbot_reply(client, message):
-    chat_id = message.chat.id
-    if chatbot_status.get(chat_id, False): # Əgər chatbot bu qrupda aktivdirsə
-        text = message.text.lower()
-        conn = get_db_connection()
-        cur = conn.cursor()
-        # Bazadan uyğun cavabı axtarırıq
-        cur.execute("SELECT reply FROM chatbot_responses WHERE trigger_word = %s", (text,))
-        res = cur.fetchone()
-        cur.close()
-        conn.close()
-        if res:
-            await message.reply_text(res[0])
-
-@app.on_message(filters.command("chatbot") & filters.group)
-async def toggle_chatbot(client, message):
-    if not await is_admin(client, message): return
-    chat_id = message.chat.id
-    chatbot_status[chat_id] = not chatbot_status.get(chat_id, False)
-    status = "Aktiv ✅" if chatbot_status[chat_id] else "Deaktiv ❌"
-    await message.reply_text(f"🤖 **Chatbot statusu:** {status}")
-
-# --- FULLSCAN ---
+# --- YENİ: KEÇMİŞİ SKAN EDƏN FUNKSİYA (USERBOT İLƏ) ---
 @app.on_message(filters.command("fullscan") & filters.group)
 async def full_scan_history(client, message):
     if not await is_admin(client, message): return
     if not SESSION_STRING:
-        return await message.reply_text("❌ `SESSION` tapılmadı.")
+        return await message.reply_text("❌ `SESSION` tapılmadı. Zəhmət olmasa Heroku-da Session String əlavə edin.")
     
     chat_id = message.chat.id
-    target = message.chat.username if message.chat.username else chat_id
-    m_status = await message.reply_text("🚀 **Keçmiş skan edilir...**")
+    m_status = await message.reply_text("🚀 **Keçmiş mesajlar skan edilir...**\n(UserBot vasitəsilə)")
     
     count = 0
     try:
-        if not user_app.is_connected: await user_app.start()
-        async for msg in user_app.get_chat_history(target):
-            if msg.from_user and not msg.from_user.is_bot:
-                count += 1
-        await m_status.edit(f"✅ **Skan tamamlandı!**\nCəmi `{count}` mesaj analiz edildi.")
+        # UserBot-u işə salırıq və keçmişi oxuyuruq
+        async with user_app:
+            async for msg in user_app.get_chat_history(chat_id):
+                if msg.from_user and not msg.from_user.is_bot:
+                    u_id = msg.from_user.id
+                    if chat_id not in user_stats: user_stats[chat_id] = {}
+                    user_stats[chat_id][u_id] = user_stats[chat_id].get(u_id, 0) + 1
+                    count += 1
+                    if count % 1000 == 0:
+                        await m_status.edit(f"🔍 Skan davam edir...\n✅ Analiz edilən: `{count}` mesaj")
+        
+        await m_status.edit(f"✅ **Skan tamamlandı!**\nCəmi `{count}` mesaj tapıldı və sıralamaya əlavə edildi.")
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
     except Exception as e:
         await m_status.edit(f"❌ Xəta: `{e}`")
 
-# --- TAĞ SİSTEMLƏRİ ---
+# --- SAHİBƏ PANELİ (CALLBACK) ---
+@app.on_callback_query(filters.regex("sahiba_panel"))
+async def sahiba_callback(client, callback_query):
+    if callback_query.from_user.id not in OWNERS:
+        return await callback_query.answer("⚠️ Bu əmrdən yalniz sᴀʜɪʙə istifadə edə bilər", show_alert=True)
+    await callback_query.message.edit_caption(
+        caption="✨ **sᴀʜɪʙə ÖZƏL PANEL**\n\n📢 **Broadcast:** `/yonlendir`", 
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Geri", callback_data="back_home")]])
+    )
+
+# --- TAĞ SİSTEMİ (QALDI) ---
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]) & filters.group)
 async def tag_handler(client, message):
     if not await is_admin(client, message): return
@@ -115,6 +108,7 @@ async def tag_handler(client, message):
                 elif cmd == "utag": tag_text = f"{random.choice(EMOJILER)} [{m.user.first_name}](tg://user?id={m.user.id})"
                 elif cmd == "flagtag": tag_text = f"{random.choice(BAYRAQLAR)} [{m.user.first_name}](tg://user?id={m.user.id})"
                 elif cmd == "tektag": tag_text = f"👤 [{m.user.first_name}](tg://user?id={m.user.id})"
+                
                 await client.send_message(chat_id, tag_text)
                 await asyncio.sleep(2.5)
             except: pass
@@ -125,26 +119,46 @@ async def stop_tag(client, message):
     tag_process[message.chat.id] = False
     await message.reply_text("**🛑 Tağ dayandırıldı.**")
 
-# --- İŞƏ SALMA ---
+# --- BROADCAST & TEXNİKİ (QALDI) ---
+@app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
+async def broadcast_func(client, message):
+    conn = get_db_connection(); cur = conn.cursor()
+    cur.execute("SELECT chat_id FROM broadcast_list"); chats = cur.fetchall()
+    cur.close(); conn.close()
+    for chat in chats:
+        try:
+            if message.reply_to_message: await message.reply_to_message.copy(chat[0])
+            else: await client.send_message(chat[0], message.text.split(None, 1)[1])
+            await asyncio.sleep(0.3)
+        except: continue
+
+@app.on_message(filters.command(["id", "ping"]))
+async def misc_cmds(client, message):
+    if message.command[0] == "id": await message.reply_text(f"🆔 ID: `{message.from_user.id}`")
+    else:
+        s = time.time(); m = await message.reply_text("⚡"); await m.edit(f"🚀 `{int((time.time()-s)*1000)}ms`")
+
+# --- İŞƏ SALMA VƏ MENYU ---
 async def start_bot():
     await app.start()
-    if user_app:
-        try: await user_app.start()
-        except: pass
-
+    
     await app.set_bot_commands([
         BotCommand("start", "Botu başladın"),
-        BotCommand("topsiralama", "🎖️ Aktivlik Reytinqi"),
-        BotCommand("chatbot", "Chatbotu aç/bağla"),
-        BotCommand("tag", "Tağ et"),
-        BotCommand("id", "ID öyrən")
+        BotCommand("fullscan", "Keçmişi skan et (UserBot)"),
+        BotCommand("tag", "Brilyant tağ"),
+        BotCommand("utag", "Emoji tağ"),
+        BotCommand("flagtag", "Bayraq tağ"),
+        BotCommand("tektag", "Təkli tağ"),
+        BotCommand("tagstop", "Tağı dayandır"),
+        BotCommand("help", "Kömək menyusu"),
+        BotCommand("id", "ID öyrən"),
+        BotCommand("ping", "Sürət ölç")
     ])
     
     if init_start: init_start(app)
     if init_plugins: init_plugins(app, get_db_connection)
-    if init_stats: init_stats(app, user_app) # MongoDB Stats
         
-    print("Sistem tam olaraq aktivdir!")
+    print("Bot və Tağ Sistemi aktivdir!")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
