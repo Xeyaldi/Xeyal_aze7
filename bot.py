@@ -2,11 +2,11 @@ import os, asyncio, random, psycopg2, requests, urllib.parse, time
 from pyrogram import Client, filters
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait, PeerIdInvalid
 
 # --- MODULLARI QOŞMAQ ---
 try:
-    from plugins import init_plugins, user_stats # user_stats-ı birbaşa buraya çəkirik
+    from plugins import init_plugins, user_stats 
 except ImportError:
     init_plugins = None
     user_stats = {}
@@ -21,23 +21,21 @@ API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
-SESSION_STRING = os.getenv("SESSION") # Heroku-dan Session String-i oxuyur
+SESSION_STRING = os.getenv("SESSION") 
 
 OWNERS = [6241071228, 7592728364, 8024893255] 
-SOHBET_QRUPU = "https://t.me/sohbetqruprc" 
+SOHBET_QRUPU = "sohbetqruprc" 
 
 tag_process = {}
 chatbot_status = {}
 link_block_status = {}
 
-# --- SİYAHLAR (QALDI) ---
-BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
+# --- SİYAHLAR (TAM QALDI) ---
+BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸代理","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
 EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉"]
 
-# --- NORMAL BOT (BOT TOKEN İLƏ) ---
+# --- NORMAL BOT VƏ USERBOT ---
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-
-# --- USERBOT (SESSION İLƏ - KEÇMİŞİ OXUMAQ ÜÇÜN) ---
 user_app = Client("user_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
 # --- DATABASE VƏ ADMIN YOXLAMASI ---
@@ -52,28 +50,37 @@ async def is_admin(client, message):
         return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
     except: return False
 
-# --- YENİ: KEÇMİŞİ SKAN EDƏN FUNKSİYA (USERBOT İLƏ) ---
+# --- TƏKMİLLƏŞDİRİLMİŞ KEÇMİŞİ SKAN ETMA ---
 @app.on_message(filters.command("fullscan") & filters.group)
 async def full_scan_history(client, message):
     if not await is_admin(client, message): return
     if not SESSION_STRING:
-        return await message.reply_text("❌ `SESSION` tapılmadı. Zəhmət olmasa Heroku-da Session String əlavə edin.")
+        return await message.reply_text("❌ `SESSION` tapılmadı. Heroku-da əlavə edin.")
     
     chat_id = message.chat.id
-    m_status = await message.reply_text("🚀 **Keçmiş mesajlar skan edilir...**\n(UserBot vasitəsilə)")
+    m_status = await message.reply_text("🚀 **Asistan qrupu tanıyır və skana hazırlaşır...**")
     
     count = 0
     try:
-        # UserBot-u işə salırıq və keçmişi oxuyuruq
-        async with user_app:
-            async for msg in user_app.get_chat_history(chat_id):
-                if msg.from_user and not msg.from_user.is_bot:
-                    u_id = msg.from_user.id
-                    if chat_id not in user_stats: user_stats[chat_id] = {}
-                    user_stats[chat_id][u_id] = user_stats[chat_id].get(u_id, 0) + 1
-                    count += 1
-                    if count % 1000 == 0:
-                        await m_status.edit(f"🔍 Skan davam edir...\n✅ Analiz edilən: `{count}` mesaj")
+        if not user_app.is_connected:
+            await user_app.start()
+            
+        # Peer ID xətasını ID və ya Link ilə həll edirik
+        try:
+            await user_app.get_chat(chat_id)
+        except PeerIdInvalid:
+            await user_app.get_chat(SOHBET_QRUPU)
+        
+        await m_status.edit("🔍 **Skan başladı... Bu proses mesaj sayından asılı olaraq vaxt ala bilər.**")
+        
+        async for msg in user_app.get_chat_history(chat_id):
+            if msg.from_user and not msg.from_user.is_bot:
+                u_id = msg.from_user.id
+                if chat_id not in user_stats: user_stats[chat_id] = {}
+                user_stats[chat_id][u_id] = user_stats[chat_id].get(u_id, 0) + 1
+                count += 1
+                if count % 1000 == 0:
+                    await m_status.edit(f"🔍 Skan davam edir...\n✅ Analiz edilən: `{count}` mesaj")
         
         await m_status.edit(f"✅ **Skan tamamlandı!**\nCəmi `{count}` mesaj tapıldı və sıralamaya əlavə edildi.")
     except FloodWait as e:
@@ -81,7 +88,7 @@ async def full_scan_history(client, message):
     except Exception as e:
         await m_status.edit(f"❌ Xəta: `{e}`")
 
-# --- SAHİBƏ PANELİ (CALLBACK) ---
+# --- SAHİBƏ PANELİ ---
 @app.on_callback_query(filters.regex("sahiba_panel"))
 async def sahiba_callback(client, callback_query):
     if callback_query.from_user.id not in OWNERS:
@@ -91,7 +98,7 @@ async def sahiba_callback(client, callback_query):
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Geri", callback_data="back_home")]])
     )
 
-# --- TAĞ SİSTEMİ (QALDI) ---
+# --- TAĞ SİSTEMİ ---
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]) & filters.group)
 async def tag_handler(client, message):
     if not await is_admin(client, message): return
@@ -119,7 +126,7 @@ async def stop_tag(client, message):
     tag_process[message.chat.id] = False
     await message.reply_text("**🛑 Tağ dayandırıldı.**")
 
-# --- BROADCAST & TEXNİKİ (QALDI) ---
+# --- BROADCAST & TEXNİKİ ---
 @app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
 async def broadcast_func(client, message):
     conn = get_db_connection(); cur = conn.cursor()
@@ -138,7 +145,7 @@ async def misc_cmds(client, message):
     else:
         s = time.time(); m = await message.reply_text("⚡"); await m.edit(f"🚀 `{int((time.time()-s)*1000)}ms`")
 
-# --- İŞƏ SALMA VƏ MENYU ---
+# --- İŞƏ SALMA ---
 async def start_bot():
     await app.start()
     
@@ -158,7 +165,7 @@ async def start_bot():
     if init_start: init_start(app)
     if init_plugins: init_plugins(app, get_db_connection)
         
-    print("Bot və Tağ Sistemi aktivdir!")
+    print("Bot və Bütün Sistemlər Aktivdir!")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
