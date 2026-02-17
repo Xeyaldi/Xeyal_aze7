@@ -11,6 +11,11 @@ except ImportError:
     init_plugins = None
     user_stats = {}
 
+try:
+    from start_module import init_start
+except ImportError:
+    init_start = None
+
 # --- AYARLAR ---
 API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
@@ -19,32 +24,23 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 SESSION_STRING = os.getenv("SESSION") 
 
 OWNERS = [6241071228, 7592728364, 8024893255] 
+SOHBET_QRUPU = "https://t.me/sohbetqruprc" 
 
-# --- DATABASE BAĞLANTISI ---
-def get_db_connection():
-    return psycopg2.connect(DATABASE_URL, sslmode='require')
+tag_process = {}
+chatbot_status = {}
+link_block_status = {}
 
-# Database-də cədvəlin olub-olmadığını yoxlayan funksiya
-def init_db():
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS user_messages (
-            chat_id BIGINT,
-            user_id BIGINT,
-            msg_count INTEGER DEFAULT 0,
-            PRIMARY KEY (chat_id, user_id)
-        )
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
-
-init_db()
+# --- SİYAHLAR (HEÇ NƏ SİLİNMƏDİ) ---
+BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲 Malta","🇲🇭","🇲","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
+EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉"]
 
 # --- BOTLARIN QURULMASI ---
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 user_app = Client("user_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
+
+# --- DATABASE YOXLAMASI ---
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL, sslmode='require')
 
 async def is_admin(client, message):
     if message.chat.type == ChatType.PRIVATE: return True
@@ -54,74 +50,139 @@ async def is_admin(client, message):
         return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
     except: return False
 
-# --- KEÇMİŞİ SKAN EDİB BAZAYA YAZAN FUNKSİYA ---
+# --- YENİ: AVTOMATİK ASİSTANT QOŞULMA VƏ SKAN ---
+@app.on_message(filters.new_chat_members)
+async def auto_join_and_scan(client, message):
+    chat_id = message.chat.id
+    for member in message.new_chat_members:
+        if member.is_self:
+            try:
+                # 1. Asistantı qrupa dəvət etmək
+                invite_link = await client.export_chat_invite_link(chat_id)
+                async with user_app:
+                    await user_app.join_chat(invite_link)
+                
+                await client.send_message(chat_id, "✅ **Asistant qrupa qoşuldu və keçmişi bazaya yükləyir...**")
+                
+                # 2. Keçmişi skan edib PostgreSQL-ə yazmaq
+                conn = get_db_connection(); cur = conn.cursor()
+                count = 0
+                async with user_app:
+                    async for msg in user_app.get_chat_history(chat_id, limit=5000):
+                        if msg.from_user and not msg.from_user.is_bot:
+                            u_id = msg.from_user.id
+                            cur.execute("""
+                                INSERT INTO user_stats (chat_id, user_id, msg_count)
+                                VALUES (%s, %s, 1)
+                                ON CONFLICT (chat_id, user_id)
+                                DO UPDATE SET msg_count = user_stats.msg_count + 1
+                            """, (chat_id, u_id))
+                            count += 1
+                conn.commit(); cur.close(); conn.close()
+                await client.send_message(chat_id, f"📊 **Skan bitdi!** `{count}` köhnə mesaj sıralamaya əlavə edildi.")
+            except Exception as e:
+                print(f"Avto-qoşulma xətası: {e}")
+
+# --- KEÇMİŞİ MANUVAL SKAN EDƏN FUNKSİYA (GÜCLƏNDİRİLMİŞ) ---
 @app.on_message(filters.command("fullscan") & filters.group)
 async def full_scan_history(client, message):
     if not await is_admin(client, message): return
-    if not SESSION_STRING:
-        return await message.reply_text("❌ `SESSION` tapılmadı.")
+    if not SESSION_STRING: return await message.reply_text("❌ `SESSION` tapılmadı.")
     
     chat_id = message.chat.id
-    m_status = await message.reply_text("🚀 **Asistant keçmişi skan edir və bazaya yazır...**")
+    m_status = await message.reply_text("🚀 **Keçmiş mesajlar PostgreSQL bazasına yazılır...**")
     
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
+    conn = get_db_connection(); cur = conn.cursor()
     count = 0
     try:
         async with user_app:
             async for msg in user_app.get_chat_history(chat_id):
                 if msg.from_user and not msg.from_user.is_bot:
                     u_id = msg.from_user.id
-                    # Bazada məlumatı yeniləyirik (yoxdursa yaradır, varsa üstünə gəlir)
                     cur.execute("""
-                        INSERT INTO user_messages (chat_id, user_id, msg_count)
+                        INSERT INTO user_stats (chat_id, user_id, msg_count)
                         VALUES (%s, %s, 1)
                         ON CONFLICT (chat_id, user_id)
-                        DO UPDATE SET msg_count = user_messages.msg_count + 1
+                        DO UPDATE SET msg_count = user_stats.msg_count + 1
                     """, (chat_id, u_id))
-                    
                     count += 1
-                    if count % 500 == 0:
-                        conn.commit() # Hər 500 mesajdan bir yaddaşa verir
+                    if count % 1000 == 0:
+                        conn.commit()
                         await m_status.edit(f"🔍 Analiz davam edir...\n✅ Bazaya yazıldı: `{count}` mesaj")
-        
         conn.commit()
-        await m_status.edit(f"✅ **Skan tamamlandı!**\nCəmi `{count}` mesaj bazada yadda saxlanıldı. Artıq deploy etsəniz də silinməyəcək.")
-    except Exception as e:
-        await m_status.edit(f"❌ Xəta: `{e}`")
-    finally:
-        cur.close()
-        conn.close()
+        await m_status.edit(f"✅ **Skan tamamlandı!** `{count}` mesaj artıq qalıcı yaddaşdadır.")
+    except Exception as e: await m_status.edit(f"❌ Xəta: `{e}`")
+    finally: cur.close(); conn.close()
 
-# --- TOP 13 SIRALAMASI (BAZADAN ÇƏKİR) ---
-@app.on_message(filters.command("top13") & filters.group)
-async def top_13(client, message):
+# --- DİGƏR FUNKSİYALAR (OLDUĞU KİMİ) ---
+@app.on_callback_query(filters.regex("sahiba_panel"))
+async def sahiba_callback(client, callback_query):
+    if callback_query.from_user.id not in OWNERS:
+        return await callback_query.answer("⚠️ Bu əmrdən yalniz sᴀʜɪʙə istifadə edə bilər", show_alert=True)
+    await callback_query.message.edit_caption(
+        caption="✨ **sᴀʜɪʙə ÖZƏL PANEL**\n\n📢 **Broadcast:** `/yonlendir`", 
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Geri", callback_data="back_home")]])
+    )
+
+@app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]) & filters.group)
+async def tag_handler(client, message):
+    if not await is_admin(client, message): return
     chat_id = message.chat.id
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    cur.execute("""
-        SELECT user_id, msg_count FROM user_messages 
-        WHERE chat_id = %s 
-        ORDER BY msg_count DESC LIMIT 13
-    """, (chat_id,))
-    
-    rows = cur.fetchall()
-    if not rows:
-        return await message.reply_text("📊 Hələ ki heç bir məlumat yoxdur.")
-    
-    text = "🏆 **QRUPUN TOP 13-LÜYÜ**\n\n"
-    for i, row in enumerate(rows, 1):
-        try:
-            user = await client.get_users(row[0])
-            name = user.first_name
-        except:
-            name = f"İstifadəçi {row[0]}"
-        text += f"{i}. {name} — `{row[1]}` mesaj\n"
-    
-    await message.reply_text(text)
-    cur.close()
-    conn.close()
+    tag_process[chat_id] = True
+    cmd = message.command[0]
+    await message.reply_text(f"**✅ {cmd} başladı!**")
+    async for m in client.get_chat_members(chat_id):
+        if not tag_process.get(chat_id, False): break
+        if m.user and not m.user.is_bot:
+            try:
+                if cmd == "tag": tag_text = f"💎 [{m.user.first_name}](tg://user?id={m.user.id})"
+                elif cmd == "utag": tag_text = f"{random.choice(EMOJILER)} [{m.user.first_name}](tg://user?id={m.user.id})"
+                elif cmd == "flagtag": tag_text = f"{random.choice(BAYRAQLAR)} [{m.user.first_name}](tg://user?id={m.user.id})"
+                elif cmd == "tektag": tag_text = f"👤 [{m.user.first_name}](tg://user?id={m.user.id})"
+                await client.send_message(chat_id, tag_text)
+                await asyncio.sleep(2.5)
+            except: pass
 
-# (Qalan tağ və digər funksiyalar olduğu kimi qalır...)
+@app.on_message(filters.command("tagstop") & filters.group)
+async def stop_tag(client, message):
+    if not await is_admin(client, message): return
+    tag_process[message.chat.id] = False
+    await message.reply_text("**🛑 Tağ dayandırıldı.**")
+
+@app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
+async def broadcast_func(client, message):
+    conn = get_db_connection(); cur = conn.cursor()
+    cur.execute("SELECT chat_id FROM broadcast_list"); chats = cur.fetchall()
+    cur.close(); conn.close()
+    for chat in chats:
+        try:
+            if message.reply_to_message: await message.reply_to_message.copy(chat[0])
+            else: await client.send_message(chat[0], message.text.split(None, 1)[1])
+            await asyncio.sleep(0.3)
+        except: continue
+
+@app.on_message(filters.command(["id", "ping"]))
+async def misc_cmds(client, message):
+    if message.command[0] == "id": await message.reply_text(f"🆔 ID: `{message.from_user.id}`")
+    else:
+        s = time.time(); m = await message.reply_text("⚡"); await m.edit(f"🚀 `{int((time.time()-s)*1000)}ms`")
+
+# --- İŞƏ SALMA ---
+async def start_bot():
+    await app.start()
+    await app.set_bot_commands([
+        BotCommand("start", "Botu başladın"),
+        BotCommand("fullscan", "Keçmişi skan et (UserBot)"),
+        BotCommand("topsiralama", "Top 20 aktivlik"),
+        BotCommand("tag", "Brilyant tağ"),
+        BotCommand("tagstop", "Tağı dayandır"),
+        BotCommand("ping", "Sürət ölç")
+    ])
+    if init_start: init_start(app)
+    if init_plugins: init_plugins(app, get_db_connection)
+    print("Bot, Asistant və PostgreSQL sistemi aktivdir!")
+    await asyncio.Event().wait()
+
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start_bot())
