@@ -30,7 +30,7 @@ tag_process = {}
 chatbot_status = {}
 link_block_status = {}
 
-# --- SİYAHLAR (HEÇ NƏ SİLİNMƏDİ) ---
+# --- SİYAHLAR (HEÇ NƏ SİLİNMƏDİ - TAM SİYAHI) ---
 BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨🇨","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
 EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎","🍓","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉"]
 
@@ -50,26 +50,24 @@ async def is_admin(client, message):
         return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
     except: return False
 
-# --- YENİ: AVTOMATİK ASİSTANT QOŞULMA VƏ SKAN ---
+# --- YENİ: ASİSTANT QOŞULMA VƏ LİMİTSİZ SKAN ---
 @app.on_message(filters.new_chat_members)
 async def auto_join_and_scan(client, message):
     chat_id = message.chat.id
     for member in message.new_chat_members:
         if member.is_self:
             try:
-                # 1. Asistantı qrupa dəvət etmək
                 invite_link = await client.export_chat_invite_link(chat_id)
                 async with user_app:
                     await user_app.join_chat(invite_link)
                 
-                await client.send_message(chat_id, "✅ **Asistant qrupa qoşuldu və keçmişi bazaya yükləyir...**")
+                await client.send_message(chat_id, "✅ **Asistant qoşuldu. Qrupdakı BÜTÜN mesajlar (limitsiz) bazaya yüklənir...**")
                 
-                # 2. Keçmişi skan edib PostgreSQL-ə yazmaq
-                conn = get_db_connection()
-                cur = conn.cursor()
+                conn = get_db_connection(); cur = conn.cursor()
                 count = 0
                 async with user_app:
-                    async for msg in user_app.get_chat_history(chat_id, limit=10000):
+                    # limit=None sayəsində qrupda neçə mesaj varsa hamısını skan edir
+                    async for msg in user_app.get_chat_history(chat_id, limit=None):
                         if msg.from_user and not msg.from_user.is_bot:
                             u_id = msg.from_user.id
                             cur.execute("""
@@ -79,25 +77,26 @@ async def auto_join_and_scan(client, message):
                                 DO UPDATE SET msg_count = user_stats.msg_count + 1
                             """, (chat_id, u_id))
                             count += 1
+                            if count % 1000 == 0: conn.commit()
                 conn.commit(); cur.close(); conn.close()
-                await client.send_message(chat_id, f"📊 **Skan bitdi!** `{count}` köhnə mesaj sıralamaya əlavə edildi.")
+                await client.send_message(chat_id, f"📊 **Skan bitdi!** Cəmi `{count}` mesaj bazaya yazıldı.")
             except Exception as e:
                 print(f"Avto-qoşulma xətası: {e}")
 
-# --- KEÇMİŞİ MANUVAL SKAN EDƏN FUNKSİYA ---
+# --- FULL SCAN (LİMİTSİZ) ---
 @app.on_message(filters.command("fullscan") & filters.group)
 async def full_scan_history(client, message):
     if not await is_admin(client, message): return
     if not SESSION_STRING: return await message.reply_text("❌ `SESSION` tapılmadı.")
     
     chat_id = message.chat.id
-    m_status = await message.reply_text("🚀 **Keçmiş mesajlar PostgreSQL bazasına yazılır...**")
+    m_status = await message.reply_text("🚀 **Limitsiz skan başladı. Bütün keçmiş mesajlar PostgreSQL-ə yazılır...**")
     
     conn = get_db_connection(); cur = conn.cursor()
     count = 0
     try:
         async with user_app:
-            async for msg in user_app.get_chat_history(chat_id):
+            async for msg in user_app.get_chat_history(chat_id, limit=None):
                 if msg.from_user and not msg.from_user.is_bot:
                     u_id = msg.from_user.id
                     cur.execute("""
@@ -115,7 +114,7 @@ async def full_scan_history(client, message):
     except Exception as e: await m_status.edit(f"❌ Xəta: `{e}`")
     finally: cur.close(); conn.close()
 
-# --- QALAN FUNKSİYALAR ---
+# --- QALAN FUNKSİYALAR (HAMSINI SAXLADIM) ---
 @app.on_callback_query(filters.regex("sahiba_panel"))
 async def sahiba_callback(client, callback_query):
     if callback_query.from_user.id not in OWNERS:
@@ -172,7 +171,7 @@ async def start_bot():
     await app.start()
     await app.set_bot_commands([
         BotCommand("start", "Botu başladın"),
-        BotCommand("fullscan", "Keçmişi skan et (UserBot)"),
+        BotCommand("fullscan", "Keçmişi skan et (Limitsiz)"),
         BotCommand("topsiralama", "Top 20 aktivlik"),
         BotCommand("tag", "Brilyant tağ")
     ])
