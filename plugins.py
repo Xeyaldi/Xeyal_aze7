@@ -37,39 +37,6 @@ def init_plugins(app, get_db_connection):
     OWNERS = [6241071228, 7592728364, 8024893255]
     TARGET_GROUP = "@sohbetqruprc"
 
-    # --- 🛡️ SAHİBƏ ÖZƏL PANELİ (SƏNİN İSTƏDİYİN) ---
-    @app.on_callback_query(filters.regex("sahiba_panel"))
-    async def sahiba_callback(client, callback_query):
-        if callback_query.from_user.id not in OWNERS:
-            return await callback_query.answer("⚠️ Səlahiyyət yoxdur!", show_alert=True)
-        await callback_query.message.edit_caption(
-            caption="✨ **sᴀʜɪʙə ÖZƏL PANEL**\n\n📢 **Broadcast:** `/yonlendir` komandası ilə bütün qruplara mesaj göndərə bilərsiniz.",
-            reply_markup=InlineKeyboardMarkup([[
-                InlineKeyboardButton("⬅️ Geri", callback_data="back_home")
-            ]])
-        )
-
-    # --- 📢 YÖNLƏNDİRMƏ (BROADCAST) ---
-    @app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
-    async def broadcast_func(client, message):
-        conn = get_db_connection(); cur = conn.cursor()
-        cur.execute("SELECT DISTINCT chat_id FROM user_stats")
-        chats = cur.fetchall(); cur.close(); conn.close()
-        
-        count = 0
-        status_msg = await message.reply_text("🚀 Göndərilir...")
-        for chat in chats:
-            try:
-                if message.reply_to_message:
-                    await message.reply_to_message.copy(chat[0])
-                else:
-                    if len(message.command) < 2: return
-                    await client.send_message(chat[0], message.text.split(None, 1)[1])
-                count += 1
-                await asyncio.sleep(0.3)
-            except: continue
-        await status_msg.edit(f"✅ Mesaj {count} qrupa çatdırıldı.")
-
     # --- GLOBAL HANDLER (MESAJ SAYĞACI VƏ KARMA) ---
     @app.on_message(filters.group & ~filters.bot, group=-1)
     async def global_handler(client, message):
