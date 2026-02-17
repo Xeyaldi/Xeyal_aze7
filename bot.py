@@ -3,39 +3,13 @@ from pyrogram import Client, filters
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 from pyrogram.errors import FloodWait
-
-# --- MODULLARI QOŞMAQ ---
-try:
-    from plugins import init_plugins
-except ImportError:
-    init_plugins = None
-
-try:
-    from start_module import init_start
-except ImportError:
-    init_start = None
-
-# --- AYARLAR ---
-API_ID = os.getenv("API_ID")
-API_HASH = os.getenv("API_HASH")
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-DATABASE_URL = os.getenv("DATABASE_URL")
-SESSION_STRING = os.getenv("SESSION") 
-
-OWNERS = [6241071228, 7592728364, 8024893255] 
-SOHBET_QRUPU = "https://t.me/sohbetqruprc" 
+from start_module import app, user_app, get_db_connection, OWNERS
 
 tag_process = {}
 
-# --- SİYAHLAR ---
+# --- SİYAHLAR (TOXUNULMADI) ---
 BAYRAQLAR = ["🇦🇿","🇹🇷","🇵🇰","🇺🇿","🇰🇿","🇰🇬","🇹🇲","🇦🇱","🇩🇿","🇦🇸","🇦🇩","🇦🇴","🇦🇮","🇦🇶","🇦🇬","🇦🇷","🇦🇲","🇦🇼","🇦🇺","🇦🇹","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇪","🇧🇿","🇧🇯","🇧🇲","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇮🇴","🇻🇬","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇮🇨","🇨🇻","🇧","🇰🇾","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇽","🇨CC","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇰","🇨🇷","🇨🇮","🇭🇷","🇨🇺","🇨🇼","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬","🇪🇷","🇪🇪","🇪🇹","🇪🇺","🇫🇰","🇫🇴","🇫🇯","🇫🇮","🇫🇷","🇬🇫","🇵🇫","🇹🇫","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇮","🇬🇷","🇬🇱","🇬🇩","🇬🇵","🇬🇺","🇬🇹","🇬🇬","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇰","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮","🇮🇪","🇮🇲","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇪","🇯🇴","🇰🇪","🇰🇮","🇽🇰","🇰🇼","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇴","🇲🇰","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲","🇲🇷","🇲🇺","🇾🇹","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇸","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇨","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇺","🇳🇫","🇰🇵","🇲🇵","🇳🇴","🇴🇲","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇳","🇵🇱","🇵🇹","🇵🇷","🇶🇦","🇷🇪","🇷🇴","🇷🇺","🇷🇼","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇽","🇸🇰","🇸🇮","🇬🇸","🇸🇧","🇸🇴","🇿🇦","🇰🇷","🇸🇸","🇪🇸","🇱🇰","🇧🇱","🇸🇭","🇰🇳","🇱🇨","🇵🇲","🇻🇨","🇸🇩","🇸🇷","🇸🇿","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇰","🇹🇴","🇹🇹","🇹🇳","🇹🇲","🇹🇨","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇻🇮","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇼🇫","🇪🇭","🇾🇪","🇿🇲","🇿🇼"]
 EMOJILER = ["🌈","🪐","🎡","🍭","💎","🔮","⚡","🔥","🚀","🛸","🎈","🎨","🎭","🎸","👾","🧪","🧿","🍀","🍿","🎁","🔋","🧸","🎉","✨","🌟","🌙","☀️","☁️","🌊","🌋","☄️","🍄","🌹","🌸","🌵","🌴","🍁","🍎"," strawberry ","🍍","🥥","🍔","🍕","🍦","🍩","🥤","🍺","🚲","🏎️","🚁","⛵","🛰️","📱","💻","💾","📸","🎥","🏮","🎬","🎧","🎤","🎹","🎺","🎻","🎲","🎯","🎮","🧩","🦄","🦁","🦊","🐼","🐨","🐯","🐝","🦋","🦜","🐬","🐳","🐾","🐉"]
-
-app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-user_app = Client("user_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
-
-def get_db_connection():
-    return psycopg2.connect(DATABASE_URL, sslmode='require')
 
 async def is_admin(client, message):
     if message.chat.type == ChatType.PRIVATE: return True
@@ -44,26 +18,6 @@ async def is_admin(client, message):
         member = await client.get_chat_member(message.chat.id, message.from_user.id)
         return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
     except: return False
-
-# --- ASİSTANT SKANER (LİMİTSİZ) ---
-@app.on_message(filters.new_chat_members)
-async def auto_join_and_scan(client, message):
-    chat_id = message.chat.id
-    for member in message.new_chat_members:
-        if member.is_self:
-            try:
-                invite_link = await client.export_chat_invite_link(chat_id)
-                if not user_app.is_connected: await user_app.start()
-                await user_app.join_chat(invite_link)
-                
-                await client.send_message(chat_id, "✅ **Asistant qoşuldu. Limitsiz skan başladı...**")
-                conn = get_db_connection(); cur = conn.cursor()
-                async for msg in user_app.get_chat_history(chat_id, limit=None):
-                    if msg.from_user and not msg.from_user.is_bot:
-                        cur.execute("""INSERT INTO user_stats (chat_id, user_id, msg_count) VALUES (%s, %s, 1) ON CONFLICT (chat_id, user_id) DO UPDATE SET msg_count = user_stats.msg_count + 1""", (chat_id, msg.from_user.id))
-                conn.commit(); cur.close(); conn.close()
-                await client.send_message(chat_id, "📊 **Skan bitdi!**")
-            except: pass
 
 @app.on_message(filters.command("fullscan") & filters.group)
 async def full_scan_history(client, message):
@@ -106,7 +60,7 @@ async def stop_tag(client, message):
     tag_process[message.chat.id] = False
     await message.reply_text("**🛑 Tağ dayandırıldı.**")
 
-# --- BROADCAST ---
+# --- BROADCAST (SADƏCƏ BURADA QALDI) ---
 @app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
 async def broadcast_func(client, message):
     conn = get_db_connection(); cur = conn.cursor()
@@ -118,30 +72,3 @@ async def broadcast_func(client, message):
             else: await client.send_message(chat[0], message.text.split(None, 1)[1])
             await asyncio.sleep(0.3)
         except: continue
-
-# --- İŞƏ SALMA ---
-async def start_bot():
-    print("🚀 Bot açılır...")
-    await app.start()
-    
-    if SESSION_STRING:
-        try: 
-            if not user_app.is_connected: await user_app.start()
-            print("✅ Asistant aktivdir.")
-        except: print("❌ Asistant qoşulmadı.")
-    
-    # 1. Start Modulu (Start mesajı, Panel və Help buna bağlıdır)
-    if init_start: 
-        init_start(app)
-        print("✅ Start_module qoşuldu.")
-        
-    # 2. Plugins (PDF, Karma, Rütbə və s.)
-    if init_plugins: 
-        init_plugins(app, get_db_connection)
-        print("✅ Plugins qoşuldu.")
-    
-    print("🔥 Bot tam hazır vəziyyətdədir!")
-    await asyncio.Event().wait()
-
-if __name__ == "__main__":
-    app.run(start_bot())
