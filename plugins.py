@@ -37,7 +37,7 @@ def init_plugins(app, get_db_connection):
     OWNERS = [6241071228, 7592728364, 8024893255]
     TARGET_GROUP = "@sohbetqruprc"
 
-    # --- DATABASE CƏDVƏLLƏRİNİ YARATMAQ ---
+    # --- DATABASE QURULUMU (Sıfırlanmaması üçün) ---
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
@@ -54,19 +54,17 @@ def init_plugins(app, get_db_connection):
     cur.close()
     conn.close()
 
-    # --- GLOBAL HANDLER (CANLI MESAJ SAYĞACI) ---
+    # --- GLOBAL HANDLER (MESAJ SAYĞACI VƏ KARMA) ---
     @app.on_message(filters.group & ~filters.bot, group=-1)
     async def global_handler(client, message):
         c_id, u_id = message.chat.id, message.from_user.id
         conn = get_db_connection(); cur = conn.cursor()
         
-        # Mesaj sayını PostgreSQL bazasında artırırıq
         cur.execute("""
             INSERT INTO user_stats (chat_id, user_id, msg_count) VALUES (%s, %s, 1)
             ON CONFLICT (chat_id, user_id) DO UPDATE SET msg_count = user_stats.msg_count + 1
         """, (c_id, u_id))
 
-        # Karma sistemi (+) və (-)
         if message.reply_to_message and message.reply_to_message.from_user:
             target_id = message.reply_to_message.from_user.id
             if target_id != u_id:
@@ -79,7 +77,7 @@ def init_plugins(app, get_db_connection):
         
         conn.commit(); cur.close(); conn.close()
 
-    # --- 📚 HELP MENYU ---
+    # --- HELP MENYU ---
     @app.on_message(filters.command("help"))
     async def help_cmd(client, message):
         help_text = (
@@ -90,29 +88,31 @@ def init_plugins(app, get_db_connection):
             "🔹 `/topsiralama` - Top 20 aktiv üzv.\n"
             "🔹 `/topkarma` - Ən çox hörmət edilənlər.\n\n"
             "🌍 **TƏRCÜMƏ SİSTEMİ:**\n"
-            "🔹 `/tercume az/en/ru/tr` (Reply ilə)\n\n"
+            "🔹 `/tercume az` və ya `/traz`\n"
+            "🔹 `/tercume en` və ya `/tren`...\n\n"
             "📄 **MULTİMEDİA:**\n"
-            "🔹 `/pdf` - Şəkil/Mətni PDF edər.\n"
-            "🔹 `/qr [mətn]` - QR kod yaradar.\n\n"
+            "🔹 `/pdf` - PDF edər.\n"
+            "🔹 `/qr [mətn]` - QR yaradar.\n\n"
             "🛠 **ADMİN:**\n"
             "🔹 `/purge`, `/id`, `/etiraf`.\n"
         )
         await message.reply_text(help_text)
 
-    # --- 🔤 TƏRCÜMƏ ---
+    # --- TƏRCÜMƏ ---
     @app.on_message(filters.command(["tercume", "traz", "tren", "trru", "trtr", "trde", "trfr"]))
     async def multi_translate(client, message):
         if not message.reply_to_message: return await message.reply_text("❌ Reply verin!")
         text = message.reply_to_message.text or message.reply_to_message.caption
         if not text: return
-        target_lang = message.command[0][2:] if len(message.command[0]) > 2 else (message.command[1] if len(message.command) > 1 else "az")
+        cmd = message.command[0].lower()
+        target_lang = cmd[2:] if cmd != "tercume" else (message.command[1].lower() if len(message.command) > 1 else "az")
         url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={target_lang}&dt=t&q={urllib.parse.quote(text)}"
         try:
             res = requests.get(url).json()
             await message.reply_text(f"🌍 **Tərcümə ({target_lang.upper()}):**\n\n`{res[0][0][0]}`")
-        except: await message.reply_text("❌ Xəta.")
+        except: await message.reply_text("❌ Xəta baş verdi.")
 
-    # --- TOPSİRALAMA (BAZADAN ÇIXARIŞ) ---
+    # --- TOPSİRALAMA ---
     @app.on_message(filters.command("topsiralama") & filters.group)
     async def top_ranks(client, message):
         conn = get_db_connection(); cur = conn.cursor()
@@ -125,7 +125,7 @@ def init_plugins(app, get_db_connection):
             text += f"{i:02d}. {rank} | {mention}\n╰─ 💬 Mesaj: `{count}`\n\n"
         await message.reply_text(text); cur.close(); conn.close()
 
-    # --- TOPKARMA (BAZADAN ÇIXARIŞ) ---
+    # --- TOPKARMA ---
     @app.on_message(filters.command("topkarma") & filters.group)
     async def top_karma_cmd(client, message):
         conn = get_db_connection(); cur = conn.cursor()
@@ -138,7 +138,7 @@ def init_plugins(app, get_db_connection):
             text += f"{i}. {mention} — `{val}` Karma\n"
         await message.reply_text(text); cur.close(); conn.close()
 
-    # --- PDF YARATMA ---
+    # --- PDF ---
     @app.on_message(filters.command("pdf"))
     async def instant_pdf(client, message):
         if not message.reply_to_message: return await message.reply_text("❌ Reply verin!")
@@ -152,12 +152,12 @@ def init_plugins(app, get_db_connection):
             with Image.open(photo_path) as img: img.convert("L").save(photo_path)
             c.drawImage(photo_path, 50, 350, 500, 450); os.remove(photo_path)
         if text_content:
-            c.setFont("Helvetica", 14)
-            c.drawString(70, 320 if photo_path else 800, f"Mezmun: {text_content[:150]}")
+            c.setFont("Helvetica", 14); c.drawString(70, 320 if photo_path else 800, f"Mezmun: {text_content[:150]}")
         c.showPage(); c.save()
-        await message.reply_document(pdf_name); os.remove(pdf_name); await wait_msg.delete()
+        await message.reply_document(pdf_name, caption="📄 Budur, PDF-iniz hazırdır!")
+        os.remove(pdf_name); await wait_msg.delete()
 
-    # --- ETİRAF SİSTEMİ ---
+    # --- ETİRAF ---
     @app.on_message(filters.command(["etiraf", "acetiraf"]))
     async def etiraf_handler(client, message):
         if len(message.command) < 2: return
@@ -172,16 +172,41 @@ def init_plugins(app, get_db_connection):
         await client.send_message(TARGET_GROUP, f"🤫 **Etiraf:**\n\n{callback_query.message.text}")
         await callback_query.edit_message_text("✅ Təsdiqləndi.")
 
-    # --- KRİPTO VƏ VALYUTA ---
+    # --- LOVE ---
+    @app.on_message(filters.command("love"))
+    async def love_cmd(client, message):
+        target = message.text.split(None, 1)[1] if len(message.command) > 1 else (message.reply_to_message.from_user.id if message.reply_to_message else None)
+        if not target: return
+        u2 = await get_mention(client, target)
+        p = int(hashlib.md5(f"{message.from_user.id}{target}".encode()).hexdigest(), 16) % 101
+        await message.reply_text(f"💘 {u2} ilə uyğunluq: `{p}%`")
+
+    # --- SLAP ---
+    @app.on_message(filters.command("slap"))
+    async def slap_cmd(client, message):
+        target = message.text.split(None, 1)[1] if len(message.command) > 1 else (message.reply_to_message.from_user.id if message.reply_to_message else None)
+        if not target: return
+        u2 = await get_mention(client, target); await message.reply_text(f"🥊 {u2} şapalaqlandı!")
+
+    # --- KRİPTO ---
     @app.on_message(filters.command("kripto"))
     async def crypto_cmd(client, message):
         r = requests.get("https://api.binance.com/api/v3/ticker/price?symbols=[\"BTCUSDT\",\"ETHUSDT\"]").json()
         await message.reply_text(f"🪙 BTC: `${float(r[0]['price']):,.2f}`\n💠 ETH: `${float(r[1]['price']):,.2f}`")
 
+    # --- VALYUTA ---
     @app.on_message(filters.command("valyuta"))
     async def val_cmd(client, message):
         r = requests.get("https://api.exchangerate-api.com/v4/latest/AZN").json()
         await message.reply_text(f"💰 USD/AZN: `{1/r['rates']['USD']:.2f}`")
+
+    # --- WİKİ ---
+    @app.on_message(filters.command("wiki"))
+    async def wiki_cmd(client, message):
+        if len(message.command) < 2: return
+        wikipedia.set_lang("az")
+        try: await message.reply_text(f"📖 {wikipedia.summary(message.text.split(None, 1)[1], sentences=2)}")
+        except: await message.reply_text("❌ Tapılmadı.")
 
     # --- OYUNLAR ---
     @app.on_message(filters.command(["dice", "slot", "futbol", "basket"]))
@@ -189,7 +214,7 @@ def init_plugins(app, get_db_connection):
         em = {"dice":"🎲", "slot":"🎰", "futbol":"⚽", "basket":"🏀"}
         await client.send_dice(message.chat.id, emoji=em[message.command[0]])
 
-    # --- ADMİN ALƏTLƏRİ ---
+    # --- PURGE ---
     @app.on_message(filters.command("purge") & filters.group)
     async def purge_func(client, message):
         if not await check_admin(client, message, OWNERS): return
@@ -197,10 +222,12 @@ def init_plugins(app, get_db_connection):
         ids = list(range(message.reply_to_message.id, message.id))
         for i in range(0, len(ids), 100): await client.delete_messages(message.chat.id, ids[i:i+100])
 
+    # --- ID ---
     @app.on_message(filters.command("id"))
     async def id_cmd(client, message):
         await message.reply_text(f"🆔 Sizin ID: `{message.from_user.id}`\n🆔 Çat ID: `{message.chat.id}`")
 
+    # --- QR ---
     @app.on_message(filters.command("qr"))
     async def qr_cmd(client, message):
         if len(message.command) < 2: return
