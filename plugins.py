@@ -1,14 +1,10 @@
-import os, asyncio, requests, urllib.parse, random, hashlib, wikipedia
+import os, asyncio, requests, urllib.parse, random, hashlib, wikipedia, psycopg2
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 from pyrogram.enums import ChatMemberStatus, ChatType
 from PIL import Image
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-
-# --- MƏLUMAT BAZASI ---
-user_stats = {} 
-user_karma = {} 
 
 # --- ADMİN YOXLAMA ---
 async def check_admin(client, message, owners):
@@ -41,64 +37,47 @@ def init_plugins(app, get_db_connection):
     OWNERS = [6241071228, 7592728364, 8024893255]
     TARGET_GROUP = "@sohbetqruprc"
 
-    # --- KOMANDALARIN MENYUSU ---
-    async def set_commands():
-        commands = [
-            BotCommand("help", "📚 Geniş kömək menyusu"),
-            BotCommand("tercume", "🌍 Tərcümə (az/en/ru/tr/de/fr)"),
-            BotCommand("topsiralama", "🎖️ Aktivlik Top 20"),
-            BotCommand("topkarma", "🎭 Karma Reytinqi"),
-            BotCommand("pdf", "📄 Mesajı PDF et (Reply)"),
-            BotCommand("kripto", "🪙 Kripto kursları"),
-            BotCommand("love", "💘 Sevgi testi"),
-            BotCommand("slap", "🥊 Şapalaq"),
-            BotCommand("qr", "🖼 QR kod yaradıcı"),
-            BotCommand("wiki", "📖 Vikipediyada axtarış"),
-            BotCommand("valyuta", "💰 Məzənnələr"),
-            BotCommand("namaz", "🕋 Namaz vaxtları"),
-            BotCommand("etiraf", "🤫 Anonim etiraf"),
-            BotCommand("id", "🆔 ID-ləri göstərər"),
-            BotCommand("purge", "🧹 Mesajları silər")
-        ]
-        await app.set_bot_commands(commands)
+    # --- DATABASE CƏDVƏLLƏRİNİ YARATMAQ ---
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_stats (
+            chat_id BIGINT, user_id BIGINT, msg_count INTEGER DEFAULT 0,
+            PRIMARY KEY (chat_id, user_id)
+        );
+        CREATE TABLE IF NOT EXISTS user_karma (
+            chat_id BIGINT, user_id BIGINT, karma_count INTEGER DEFAULT 0,
+            PRIMARY KEY (chat_id, user_id)
+        );
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
 
-    # --- AVTOMATİK ARXA FON SKANI ---
-    async def background_history_scan(client, chat_id):
-        if chat_id not in user_stats: user_stats[chat_id] = {}
-        try:
-            async for msg in client.get_chat_history(chat_id, limit=10000):
-                if msg.from_user and not msg.from_user.is_bot:
-                    u_id = msg.from_user.id
-                    user_stats[chat_id][u_id] = user_stats[chat_id].get(u_id, 0) + 1
-        except: pass
-
-    # --- GLOBAL HANDLER ---
+    # --- GLOBAL HANDLER (CANLI MESAJ SAYĞACI) ---
     @app.on_message(filters.group & ~filters.bot, group=-1)
     async def global_handler(client, message):
         c_id, u_id = message.chat.id, message.from_user.id
-        if c_id not in user_stats:
-            user_stats[c_id] = {}
-            asyncio.create_task(background_history_scan(client, c_id))
-        user_stats[c_id][u_id] = user_stats[c_id].get(u_id, 0) + 1
+        conn = get_db_connection(); cur = conn.cursor()
+        
+        # Mesaj sayını PostgreSQL bazasında artırırıq
+        cur.execute("""
+            INSERT INTO user_stats (chat_id, user_id, msg_count) VALUES (%s, %s, 1)
+            ON CONFLICT (chat_id, user_id) DO UPDATE SET msg_count = user_stats.msg_count + 1
+        """, (c_id, u_id))
 
+        # Karma sistemi (+) və (-)
         if message.reply_to_message and message.reply_to_message.from_user:
             target_id = message.reply_to_message.from_user.id
-            if target_id == u_id: return
-            if c_id not in user_karma: user_karma[c_id] = {}
-            if message.text == "+":
-                user_karma[c_id][target_id] = user_karma[c_id].get(target_id, 0) + 1
-                await message.reply_text(f"➕ **{message.reply_to_message.from_user.first_name}** karması artdı!")
-            elif message.text == "-":
-                user_karma[c_id][target_id] = user_karma[c_id].get(target_id, 0) - 1
-                await message.reply_text(f"➖ **{message.reply_to_message.from_user.first_name}** karması azaldı!")
-
-    # --- 🔍 GİZLİ SKAN ---
-    @app.on_message(filters.command("skan") & filters.group)
-    async def scan_history(client, message):
-        if not await check_admin(client, message, OWNERS): return
-        m_wait = await message.reply_text("🔍 Mesajlar analiz edilir...")
-        asyncio.create_task(background_history_scan(client, message.chat.id))
-        await m_wait.edit("✅ Skan başladı.")
+            if target_id != u_id:
+                if message.text == "+":
+                    cur.execute("INSERT INTO user_karma (chat_id, user_id, karma_count) VALUES (%s, %s, 1) ON CONFLICT (chat_id, user_id) DO UPDATE SET karma_count = user_karma.karma_count + 1", (c_id, target_id))
+                    await message.reply_text(f"➕ **{message.reply_to_message.from_user.first_name}** karması artdı!")
+                elif message.text == "-":
+                    cur.execute("INSERT INTO user_karma (chat_id, user_id, karma_count) VALUES (%s, %s, -1) ON CONFLICT (chat_id, user_id) DO UPDATE SET karma_count = user_karma.karma_count - 1", (c_id, target_id))
+                    await message.reply_text(f"➖ **{message.reply_to_message.from_user.first_name}** karması azaldı!")
+        
+        conn.commit(); cur.close(); conn.close()
 
     # --- 📚 HELP MENYU ---
     @app.on_message(filters.command("help"))
@@ -111,20 +90,10 @@ def init_plugins(app, get_db_connection):
             "🔹 `/topsiralama` - Top 20 aktiv üzv.\n"
             "🔹 `/topkarma` - Ən çox hörmət edilənlər.\n\n"
             "🌍 **TƏRCÜMƏ SİSTEMİ:**\n"
-            "🔹 Mesaja reply verib istifadə edin:\n"
-            "🔹 `/tercume az` və ya `/traz`\n"
-            "🔹 `/tercume en` və ya `/tren`\n"
-            "🔹 `/tercume ru` və ya `/trru`\n"
-            "🔹 `/tercume tr` və ya `/trtr`\n"
-            "🔹 `/tercume de` və ya `/trde`\n"
-            "🔹 `/tercume fr` və ya `/trfr`\n\n"
+            "🔹 `/tercume az/en/ru/tr` (Reply ilə)\n\n"
             "📄 **MULTİMEDİA:**\n"
-            "🔹 `/pdf` - Şəkil/Mətni dərhal PDF edər.\n"
+            "🔹 `/pdf` - Şəkil/Mətni PDF edər.\n"
             "🔹 `/qr [mətn]` - QR kod yaradar.\n\n"
-            "💰 **MƏLUMAT:**\n"
-            "🔹 `/kripto`, `/valyuta`, `/wiki`, `/namaz`.\n\n"
-            "💖 **ƏYLƏNCƏ:**\n"
-            "🔹 `/love`, `/slap`, `/dice`, `/slot`, `/futbol`.\n\n"
             "🛠 **ADMİN:**\n"
             "🔹 `/purge`, `/id`, `/etiraf`.\n"
         )
@@ -133,56 +102,43 @@ def init_plugins(app, get_db_connection):
     # --- 🔤 TƏRCÜMƏ ---
     @app.on_message(filters.command(["tercume", "traz", "tren", "trru", "trtr", "trde", "trfr"]))
     async def multi_translate(client, message):
-        if not message.reply_to_message:
-            return await message.reply_text("❌ Tərcümə üçün mesaja reply verin!")
-        
+        if not message.reply_to_message: return await message.reply_text("❌ Reply verin!")
         text = message.reply_to_message.text or message.reply_to_message.caption
         if not text: return
-
-        cmd = message.command[0].lower()
-        if cmd == "tercume":
-            if len(message.command) < 2:
-                return await message.reply_text("💡 Nümunə: `/tercume en` (Mesaja reply verərək)")
-            target_lang = message.command[1].lower()
-        else:
-            target_lang = cmd[2:]
-
-        valid_langs = ["az", "en", "ru", "tr", "de", "fr"]
-        if target_lang not in valid_langs:
-            return await message.reply_text(f"❌ Dəstəklənən dillər: {', '.join(valid_langs)}")
-
+        target_lang = message.command[0][2:] if len(message.command[0]) > 2 else (message.command[1] if len(message.command) > 1 else "az")
         url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl={target_lang}&dt=t&q={urllib.parse.quote(text)}"
         try:
             res = requests.get(url).json()
             await message.reply_text(f"🌍 **Tərcümə ({target_lang.upper()}):**\n\n`{res[0][0][0]}`")
-        except:
-            await message.reply_text("❌ Tərcümə zamanı xəta baş verdi.")
+        except: await message.reply_text("❌ Xəta.")
 
-    # --- TOPSİRALAMA ---
+    # --- TOPSİRALAMA (BAZADAN ÇIXARIŞ) ---
     @app.on_message(filters.command("topsiralama") & filters.group)
     async def top_ranks(client, message):
-        c_id = message.chat.id
-        if c_id not in user_stats or not user_stats[c_id]:
-            return await message.reply_text("🪖 Məlumat yoxdur.")
-        sorted_users = sorted(user_stats[c_id].items(), key=lambda x: x[1], reverse=True)[:20]
+        conn = get_db_connection(); cur = conn.cursor()
+        cur.execute("SELECT user_id, msg_count FROM user_stats WHERE chat_id = %s ORDER BY msg_count DESC LIMIT 20", (message.chat.id,))
+        rows = cur.fetchall()
+        if not rows: return await message.reply_text("🪖 Məlumat yoxdur.")
         text = "🎖️ **Qrupun Top 20 Aktiv Üzvü**\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
-        for i, (u_id, count) in enumerate(sorted_users, 1):
+        for i, (u_id, count) in enumerate(rows, 1):
             mention = await get_mention(client, u_id); rank = get_rank(count)
             text += f"{i:02d}. {rank} | {mention}\n╰─ 💬 Mesaj: `{count}`\n\n"
-        await message.reply_text(text)
+        await message.reply_text(text); cur.close(); conn.close()
 
+    # --- TOPKARMA (BAZADAN ÇIXARIŞ) ---
     @app.on_message(filters.command("topkarma") & filters.group)
     async def top_karma_cmd(client, message):
-        c_id = message.chat.id
-        if c_id not in user_karma or not user_karma[c_id]:
-            return await message.reply_text("🎭 Karma hələ yoxdur.")
-        sorted_karma = sorted(user_karma[c_id].items(), key=lambda x: x[1], reverse=True)[:10]
+        conn = get_db_connection(); cur = conn.cursor()
+        cur.execute("SELECT user_id, karma_count FROM user_karma WHERE chat_id = %s ORDER BY karma_count DESC LIMIT 10", (message.chat.id,))
+        rows = cur.fetchall()
+        if not rows: return await message.reply_text("🎭 Karma hələ yoxdur.")
         text = "🎭 **Karma Reytinqi (Top 10)**\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
-        for i, (u_id, val) in enumerate(sorted_karma, 1):
+        for i, (u_id, val) in enumerate(rows, 1):
             mention = await get_mention(client, u_id)
             text += f"{i}. {mention} — `{val}` Karma\n"
-        await message.reply_text(text)
+        await message.reply_text(text); cur.close(); conn.close()
 
+    # --- PDF YARATMA ---
     @app.on_message(filters.command("pdf"))
     async def instant_pdf(client, message):
         if not message.reply_to_message: return await message.reply_text("❌ Reply verin!")
@@ -199,9 +155,9 @@ def init_plugins(app, get_db_connection):
             c.setFont("Helvetica", 14)
             c.drawString(70, 320 if photo_path else 800, f"Mezmun: {text_content[:150]}")
         c.showPage(); c.save()
-        await message.reply_document(pdf_name, caption="📄 Budur, PDF-iniz hazırdır!")
-        os.remove(pdf_name); await wait_msg.delete()
+        await message.reply_document(pdf_name); os.remove(pdf_name); await wait_msg.delete()
 
+    # --- ETİRAF SİSTEMİ ---
     @app.on_message(filters.command(["etiraf", "acetiraf"]))
     async def etiraf_handler(client, message):
         if len(message.command) < 2: return
@@ -216,28 +172,7 @@ def init_plugins(app, get_db_connection):
         await client.send_message(TARGET_GROUP, f"🤫 **Etiraf:**\n\n{callback_query.message.text}")
         await callback_query.edit_message_text("✅ Təsdiqləndi.")
 
-    @app.on_message(filters.photo)
-    async def bw_photo(client, message):
-        path = await message.download()
-        with Image.open(path) as img: img.convert("L").save("bw.jpg")
-        await message.reply_photo("bw.jpg", caption="🖼 Ağ-qara edildi.")
-        os.remove(path); os.remove("bw.jpg")
-
-    @app.on_message(filters.command("love"))
-    async def love_cmd(client, message):
-        target = message.text.split(None, 1)[1] if len(message.command) > 1 else (message.reply_to_message.from_user.id if message.reply_to_message else None)
-        if not target: return
-        u2 = await get_mention(client, target)
-        p = int(hashlib.md5(f"{message.from_user.id}{target}".encode()).hexdigest(), 16) % 101
-        await message.reply_text(f"💘 {u2} ilə uyğunluq: `{p}%`")
-
-    @app.on_message(filters.command("slap"))
-    async def slap_cmd(client, message):
-        target = message.text.split(None, 1)[1] if len(message.command) > 1 else (message.reply_to_message.from_user.id if message.reply_to_message else None)
-        if not target: return
-        u2 = await get_mention(client, target)
-        await message.reply_text(f"🥊 {u2} şapalaqlandı!")
-
+    # --- KRİPTO VƏ VALYUTA ---
     @app.on_message(filters.command("kripto"))
     async def crypto_cmd(client, message):
         r = requests.get("https://api.binance.com/api/v3/ticker/price?symbols=[\"BTCUSDT\",\"ETHUSDT\"]").json()
@@ -248,17 +183,13 @@ def init_plugins(app, get_db_connection):
         r = requests.get("https://api.exchangerate-api.com/v4/latest/AZN").json()
         await message.reply_text(f"💰 USD/AZN: `{1/r['rates']['USD']:.2f}`")
 
-    @app.on_message(filters.command("wiki"))
-    async def wiki_cmd(client, message):
-        wikipedia.set_lang("az")
-        try: await message.reply_text(f"📖 {wikipedia.summary(message.text.split(None, 1)[1], sentences=2)}")
-        except: await message.reply_text("❌ Tapılmadı.")
-
+    # --- OYUNLAR ---
     @app.on_message(filters.command(["dice", "slot", "futbol", "basket"]))
     async def games(client, message):
         em = {"dice":"🎲", "slot":"🎰", "futbol":"⚽", "basket":"🏀"}
         await client.send_dice(message.chat.id, emoji=em[message.command[0]])
 
+    # --- ADMİN ALƏTLƏRİ ---
     @app.on_message(filters.command("purge") & filters.group)
     async def purge_func(client, message):
         if not await check_admin(client, message, OWNERS): return
