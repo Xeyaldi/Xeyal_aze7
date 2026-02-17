@@ -215,8 +215,7 @@ def init_plugins(app, get_db_connection):
     async def ping_cmd(client, message):
         start = time.time()
         m = await message.reply_text("⚡")
-        end = time.time()
-        await m.edit(f"🚀 `{int((end - start) * 1000)}ms`")
+        await m.edit(f"🚀 `{int((time.time() - start) * 1000)}ms`")
 
     # --- QR ---
     @app.on_message(filters.command("qr"))
