@@ -1,4 +1,4 @@
-import os, asyncio, requests, urllib.parse, random, hashlib, wikipedia, psycopg2
+import os, asyncio, requests, urllib.parse, random, hashlib, wikipedia, psycopg2, time
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 from pyrogram.enums import ChatMemberStatus, ChatType
@@ -36,23 +36,6 @@ def get_rank(count):
 def init_plugins(app, get_db_connection):
     OWNERS = [6241071228, 7592728364, 8024893255]
     TARGET_GROUP = "@sohbetqruprc"
-
-    # --- DATABASE QURULUMU (Sıfırlanmaması üçün) ---
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS user_stats (
-            chat_id BIGINT, user_id BIGINT, msg_count INTEGER DEFAULT 0,
-            PRIMARY KEY (chat_id, user_id)
-        );
-        CREATE TABLE IF NOT EXISTS user_karma (
-            chat_id BIGINT, user_id BIGINT, karma_count INTEGER DEFAULT 0,
-            PRIMARY KEY (chat_id, user_id)
-        );
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
 
     # --- GLOBAL HANDLER (MESAJ SAYĞACI VƏ KARMA) ---
     @app.on_message(filters.group & ~filters.bot, group=-1)
@@ -226,6 +209,14 @@ def init_plugins(app, get_db_connection):
     @app.on_message(filters.command("id"))
     async def id_cmd(client, message):
         await message.reply_text(f"🆔 Sizin ID: `{message.from_user.id}`\n🆔 Çat ID: `{message.chat.id}`")
+
+    # --- PING ---
+    @app.on_message(filters.command("ping"))
+    async def ping_cmd(client, message):
+        start = time.time()
+        m = await message.reply_text("⚡")
+        end = time.time()
+        await m.edit(f"🚀 `{int((end - start) * 1000)}ms`")
 
     # --- QR ---
     @app.on_message(filters.command("qr"))
