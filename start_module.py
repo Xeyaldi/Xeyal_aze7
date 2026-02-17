@@ -1,99 +1,71 @@
-import os, asyncio, random, psycopg2, requests, urllib.parse, time
+import os, asyncio, psycopg2
 from pyrogram import Client, filters
-from pyrogram.enums import ChatMemberStatus, ChatType
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
-from pyrogram.errors import FloodWait
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# --- AYARLAR (TOXUNULMADI) ---
-API_ID = os.getenv("API_ID")
+# --- AYARLAR ---
+API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
 SESSION_STRING = os.getenv("SESSION") 
 
-OWNERS = [6241071228, 7592728364, 8024893255] 
 SOHBET_QRUPU = "https://t.me/sohbetqruprc" 
 SAKIL_LINKI = "https://i.postimg.cc/mDTTvtxS/20260214-163714.jpg" 
 
-# --- BOTLAR ---
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 user_app = Client("user_account", api_id=API_ID, api_hash=API_HASH, session_string=SESSION_STRING)
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, sslmode='require')
 
-# --- MODULLARI QOŞMAQ ---
 try:
     from plugins import init_plugins
 except ImportError:
     init_plugins = None
 
-# --- START KOMANDASI (SADƏ VƏ SAĞLAM) ---
-@app.on_message(filters.command("start"))
-async def start_cmd(client, message):
+# --- ANA MENYU FUNKSİYASI (Təkrarlanmasın deyə bir yerdə yazırıq) ---
+async def get_main_menu(client):
+    bot_info = await client.get_me()
     buttons = [
-        [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
+        [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{bot_info.username}?startgroup=true")],
         [InlineKeyboardButton("👩‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
         [InlineKeyboardButton("🛠 sᴀʜɪʙə əᴍʀɪ", callback_data="sahiba_panel")]
     ]
+    return InlineKeyboardMarkup(buttons)
+
+# --- START ---
+@app.on_message(filters.command("start") & filters.private)
+async def start_cmd(client, message):
+    markup = await get_main_menu(client)
     await message.reply_photo(
         photo=SAKIL_LINKI, 
         caption="**sᴀʟᴀᴍ ! ᴍəɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ᴛᴀɢ ᴠə ᴄʜᴀᴛʙᴏᴛ ʙᴏᴛᴜʏᴀᴍ.**\n\n**ᴋᴏᴍᴜᴛʟᴀʀ üçüɴ /help ʏᴀᴢıɴ.**",
-        reply_markup=InlineKeyboardMarkup(buttons)
+        reply_markup=markup
     )
 
-# --- PANEL VƏ GERİ DÜYMƏSİ ---
+# --- GERİ DÜYMƏSİ (BACK_HOME) ---
 @app.on_callback_query(filters.regex("back_home"))
-async def back_home(client, callback_query):
-    buttons = [
-        [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
-        [InlineKeyboardButton("🛠 sᴀʜɪʙə əᴍʀɪ", callback_data="sahiba_panel")]
-    ]
-    await callback_query.message.edit_caption(
-        caption="**sᴀʟᴀᴍ ! ᴍəɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ᴛᴀɢ ᴠə ᴄʜᴀᴛʙᴏᴛ ʙᴏᴛᴜʏᴀᴍ.**\n\n**ᴋᴏᴍᴜᴛʟᴀʀ üçüɴ /help ʏᴀᴢıɴ.**",
-        reply_markup=InlineKeyboardMarkup(buttons)
-    )
-
-@app.on_callback_query(filters.regex("sahiba_panel"))
-async def sahiba_callback(client, callback_query):
-    if callback_query.from_user.id not in OWNERS:
-        return await callback_query.answer("⚠️ Bu əmrdən yalniz sᴀʜɪʙə istifadə edə bilər", show_alert=True)
-    await callback_query.message.edit_caption(
-        caption="✨ **sᴀʜɪʙə ÖZƏL PANEL**\n\n📢 **Broadcast və digər ayarlar üçün /help yazın.**", 
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Geri", callback_data="back_home")]])
-    )
-
-# --- AVTOMATİK LİMİTSİZ SKAN ---
-@app.on_message(filters.new_chat_members)
-async def auto_join_and_scan(client, message):
-    if any(m.is_self for m in message.new_chat_members):
-        try:
-            invite_link = await client.export_chat_invite_link(message.chat.id)
-            if not user_app.is_connected: await user_app.start()
-            await user_app.join_chat(invite_link)
-            
-            conn = get_db_connection(); cur = conn.cursor()
-            async for msg in user_app.get_chat_history(message.chat.id, limit=None):
-                if msg.from_user and not msg.from_user.is_bot:
-                    cur.execute("INSERT INTO user_stats (chat_id, user_id, msg_count) VALUES (%s, %s, 1) ON CONFLICT (chat_id, user_id) DO UPDATE SET msg_count = user_stats.msg_count + 1", (message.chat.id, msg.from_user.id))
-            conn.commit(); cur.close(); conn.close()
-        except: pass
+async def back_home_callback(client, callback_query):
+    markup = await get_main_menu(client)
+    try:
+        await callback_query.message.edit_caption(
+            caption="**sᴀʟᴀᴍ ! ᴍəɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ᴛᴀɢ ᴠə ᴄʜᴀᴛʙᴏᴛ ʙᴏᴛᴜʏᴀᴍ.**\n\n**ᴋᴏᴍᴜᴛʟᴀʀ üçüɴ /help ʏᴀᴢıɴ.**",
+            reply_markup=markup
+        )
+    except:
+        await callback_query.answer()
 
 # --- İŞƏ SALMA ---
 async def start_bot():
-    print("Bot açılır...")
     await app.start()
     if SESSION_STRING:
-        try: 
-            if not user_app.is_connected: await user_app.start()
-        except: print("Asistant qoşulmadı.")
+        try: await user_app.start()
+        except: pass
+
+    if init_plugins:
+        init_plugins(app, get_db_connection, user_app) # Userbotu da pluginlərə göndəririk
     
-    # Plugins-i burada yükləyirik ki, komandalar aktiv olsun
-    if init_plugins: 
-        init_plugins(app, get_db_connection)
-    
-    print("🚀 Bot aktivdir! İndi donma olmayacaq.")
+    print("🚀 Bot aktivdir!")
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
