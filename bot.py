@@ -1,14 +1,28 @@
-import os, asyncio, random, psycopg2, requests, urllib.parse, time
+import os, asyncio, random, psycopg2, requests, urllib.parse, time, importlib
 from pyrogram import Client, filters
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
 from pyrogram.errors import FloodWait
 
-# --- PLUGİNS FAYLINI TANIMAQ ÜÇÜN KÖRPÜ ---
-try:
-    from plugins import init_plugins
-except ImportError:
-    init_plugins = None
+# --- PLUGİNS FAYLINI TANIMAQ ÜÇÜN KÖRPÜ (YENİ) ---
+def load_plugins(client):
+    # plugin.py faylı varsa onu yükləyir
+    if os.path.exists("plugin.py"):
+        try:
+            importlib.import_module("plugin")
+            print("✅ plugin.py tanındı!")
+        except Exception as e:
+            print(f"❌ plugin.py xətası: {e}")
+    
+    # plugins qovluğu varsa içindəki hər şeyi yükləyir
+    if os.path.exists("plugins"):
+        for file in os.listdir("plugins"):
+            if file.endswith(".py") and not file.startswith("__"):
+                module_name = f"plugins.{file[:-3]}"
+                try:
+                    importlib.import_module(module_name)
+                except:
+                    pass
 
 # --- AYARLAR ---
 API_ID = os.getenv("API_ID")
@@ -16,7 +30,6 @@ API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# SAHİBƏ VƏ OWNER ID-LƏRİ
 OWNERS = [6241071228, 7592728364, 8024893255] 
 SAHIBE_ID = 7592728364 
 SAKIL_LINKI = "https://i.postimg.cc/mDTTvtxS/20260214-163714.jpg" 
@@ -271,7 +284,7 @@ async def link_toggle(client, message):
     link_block_status[message.chat.id] = (status == "on")
     await message.reply_text(f"🛡 Link qoruması **{status}** edildi.")
 
-# --- CHATBOT LOGIC & TRACKER (BU HİSSƏ OLDUĞU KİMİ QALDI) ---
+# --- CHATBOT LOGIC ---
 @app.on_message(filters.text & ~filters.bot, group=1)
 async def message_handler(client, message):
     chat_id = message.chat.id
@@ -340,7 +353,7 @@ async def translate_msg(client, message):
             except: continue
         await message.reply_text(res)
 
-# --- VİKİPEDİYA VƏ NAMAZ (YALNIZ BURADAKI MÖTƏRİZƏLƏR DÜZƏLDİ) ---
+# --- VİKİPEDİYA VƏ NAMAZ ---
 @app.on_message(filters.command("wiki"))
 async def wiki_search(client, message):
     if len(message.command) < 2: return
@@ -358,69 +371,49 @@ async def wiki_search(client, message):
 async def namaz_vaxtlari(client, message):
     city = message.command[1] if len(message.command) > 1 else "Baku"
     try:
-        # City dəyişəni URL daxilinə düzgün yerləşdirildi
         url = f"https://api.aladhan.com/v1/timingsByCity?city={urllib.parse.quote(city)}&country=Azerbaijan&method=3"
         r = requests.get(url).json()
         t = r['data']['timings']
         await message.reply_text(f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\nSübh: `{t['Fajr']}`\nZöhr: `{t['Dhuhr']}`\nƏsr: `{t['Asr']}`\nAxşam: `{t['Maghrib']}`\nİşaa: `{t['Isha']}`")
     except: await message.reply_text("❌ Xəta.")
 
-# --- ETİRAF SİSTEMİ ---
-@app.on_message(filters.command("etiraf"))
-async def etiraf_anonim(client, message):
-    if len(message.command) < 2: return
-    try:
-        await client.send_message(SOHBET_QRUPU.split('/')[-1], f"🤫 **Anonim Etiraf:**\n\n`{message.text.split(None, 1)[1]}`")
-        await message.reply_text("✅ Göndərildi.")
-    except: pass
-
-@app.on_message(filters.command("acetiraf"))
-async def etiraf_aciq(client, message):
-    if len(message.command) < 2: return
-    try:
-        await client.send_message(SOHBET_QRUPU.split('/')[-1], f"📢 **Açıq Etiraf ({message.from_user.mention}):**\n\n`{message.text.split(None, 1)[1]}`")
-        await message.reply_text("✅ Göndərildi.")
-    except: pass
-
-# --- DİGƏR KOMANDALAR ---
-@app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice", "id", "purge", "ping", "info"]))
-async def misc_cmds(client, message):
-    cmd = message.command[0]
-    if cmd == "id": await message.reply_text(f"🆔 ID: `{message.from_user.id}`")
-    elif cmd == "ping":
-        s = time.time(); m = await message.reply_text("⚡"); await m.edit(f"🚀 `{int((time.time()-s)*1000)}ms`")
-    elif cmd == "info":
-        u = message.reply_to_message.from_user if message.reply_to_message else message.from_user
-        await message.reply_text(f"👤 Ad: {u.first_name}\n🆔 ID: `{u.id}`")
-    elif cmd == "purge" and await is_admin(client, message):
-        if message.reply_to_message:
-            await client.delete_messages(message.chat.id, range(message.reply_to_message.id, message.id))
-    elif cmd in ["basket", "futbol", "dart", "slot", "dice"]:
-        await client.send_dice(message.chat.id, emoji={"basket":"🏀","futbol":"⚽","dart":"🎯","slot":"🎰","dice":"🎲"}[cmd])
-
-# --- STARTUP VƏ MENYU ---
-async def main():
-    await app.start()
-    if init_plugins:
-        init_plugins(app, get_db_connection)
+# --- ETİRAF TƏSDİQ SİSTEMİ (YENİ) ---
+@app.on_message(filters.command(["etiraf", "acetiraf"]))
+async def etiraf_handler(client, message):
+    if len(message.command) < 2:
+        return await message.reply_text("Zəhmət olmasa etirafınızı yazın.")
     
-    await app.set_bot_commands([
-        BotCommand("start", "Botu başladın"),
-        BotCommand("help", "Kömək menyusu"),
-        BotCommand("tag", "Brilyant tağ"),
-        BotCommand("utag", "Emoji tağ"),
-        BotCommand("tercume", "Tərcümə (Reply ilə)"),
-        BotCommand("wiki", "Vikipediya"),
-        BotCommand("namaz", "Namaz vaxtları"),
-        BotCommand("hava", "Hava durumu"),
-        BotCommand("etiraf", "Anonim etiraf"),
-        BotCommand("acetiraf", "Açıq etiraf"),
-        BotCommand("id", "ID nömrəniz"),
-        BotCommand("ping", "Botun sürəti")
+    is_anon = "Anonim" if message.command[0] == "etiraf" else f"Açıq ({message.from_user.mention})"
+    etiraf_text = message.text.split(None, 1)[1]
+    
+    # Sahibəyə düymələr göndərilir
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✅ Təsdiqlə", callback_data=f"approve_etiraf|{message.chat.id}"),
+            InlineKeyboardButton("❌ Rədd et", callback_data="decline_etiraf")
+        ]
     ])
     
-    print("Bot 100% bütöv və aktivdir!")
-    await asyncio.Event().wait()
+    await client.send_message(
+        SAHIBE_ID, 
+        f"🔔 **Yeni Etiraf Gəldi!**\n\n**Növ:** {is_anon}\n**Etiraf:**\n`{etiraf_text}`",
+        reply_markup=keyboard
+    )
+    await message.reply_text("✅ Etirafınız sahibəyə göndərildi. Təsdiq edildikdən sonra paylaşılacaq.")
 
-if __name__ == "__main__":
-    app.run(main())  
+@app.on_callback_query(filters.regex(r"^(approve_etiraf|decline_etiraf)"))
+async def process_etiraf_callback(client, callback_query):
+    if callback_query.from_user.id != SAHIBE_ID:
+        return await callback_query.answer("Sən sahibə deyilsən!", show_alert=True)
+    
+    action = callback_query.data.split("|")[0]
+    
+    if action == "approve_etiraf":
+        # Etiraf mətnini mesajdan çıxarırıq
+        et_msg = callback_query.message.text.split("Etiraf:\n")[1]
+        header = "🤫 **Anonim Etiraf**" if "Anonim" in callback_query.message.text else "📢 **Açıq Etiraf**"
+        
+        # Qrupa göndər
+        qrup_user = SOHBET_QRUPU.split('/')[-1]
+        await client.send_message(qrup_user, f"{header}:\n\n`{et_msg}`")
+        await call
