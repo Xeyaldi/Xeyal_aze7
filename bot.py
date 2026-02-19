@@ -353,7 +353,7 @@ async def translate_msg(client, message):
             except: continue
         await message.reply_text(res)
 
-# --- VİKİPEDİYA (LİNKSİZ, SADƏCƏ MƏLUMAT) ---
+# --- VİKİPEDİYA (SADƏ VƏ LİNKSİZ) ---
 @app.on_message(filters.command("wiki"))
 async def wiki_search(client, message):
     if len(message.command) < 2:
@@ -362,50 +362,44 @@ async def wiki_search(client, message):
     query = " ".join(message.command[1:])
     
     try:
-        async with httpx.AsyncClient() as session:
-            # Wikipedia API-dən xülasəni çəkirik
-            url = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}"
-            r = await session.get(url, timeout=10)
-            
-            if r.status_code != 200:
-                return await message.reply_text("❌ Məlumat tapılmadı.")
-            
-            data = r.json()
-            title = data.get("title")
-            # Şəkildəki abzas həcmi üçün (təxminən 600 simvol)
-            extract = data.get("extract", "")
-            
-            # Linki tamamilə sildim, ancaq başlıq və mətn qalır
-            msg_text = (
-                f"📖 **{title}**\n\n"
-                f"{extract}"
-            )
-            
-            await message.reply_text(msg_text)
-            
+        # Wikipedia-nı AZ dilinə qoyuruq
+        wikipedia.set_lang("az")
+        
+        # Məqalənin xülasəsini (summary) çəkirik
+        # sentences=8 qoyuram ki, şəkildəki kimi dolu bir abzas olsun
+        loop = asyncio.get_event_loop()
+        res = await loop.run_in_executor(None, lambda: wikipedia.summary(query, sentences=8))
+        
+        # Format: Başlıq və Mətn (Link yoxdur)
+        text = f"📖 **{query.capitalize()}**\n\n{res}"
+        
+        await message.reply_text(text)
+        
     except Exception:
-        await message.reply_text("⚠️ Xəta baş verdi.")
+        # Əgər tapılmasa və ya başqa problem olsa
+        await message.reply_text("❌ Məlumat tapılmadı.")
 
 # --- NAMAZ VAXTLARI ---
 @app.on_message(filters.command("namaz"))
 async def namaz_vaxtlari(client, message):
     city = message.command[1] if len(message.command) > 1 else "Baku"
     try:
-        async with httpx.AsyncClient() as session:
-            r = await session.get(f"https://api.aladhan.com/v1/timingsByCity?city={city}&country=Azerbaijan&method=3")
-            t = r.json()['data']['timings']
-            
-            res = (f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\n"
-                   f"🌅 Sübh: `{t['Fajr']}`\n"
-                   f"☀️ Günəş: `{t['Sunrise']}`\n"
-                   f"🕛 Zöhr: `{t['Dhuhr']}`\n"
-                   f"🕒 Əsr: `{t['Asr']}`\n"
-                   f"🌇 Axşam: `{t['Maghrib']}`\n"
-                   f"🌃 İşа: `{t['Isha']}`")
-            await message.reply_text(res)
+        url = f"https://api.aladhan.com/v1/timingsByCity?city={city}&country=Azerbaijan&method=3"
+        import requests
+        r = requests.get(url, timeout=10).json()
+        t = r['data']['timings']
+        
+        res = (f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\n"
+               f"🌅 Sübh: `{t['Fajr']}`\n"
+               f"☀️ Günəş: `{t['Sunrise']}`\n"
+               f"🕛 Zöhr: `{t['Dhuhr']}`\n"
+               f"🕒 Əsr: `{t['Asr']}`\n"
+               f"🌇 Axşam: `{t['Maghrib']}`\n"
+               f"🌃 İşа: `{t['Isha']}`")
+        await message.reply_text(res)
     except:
-        await message.reply_text("❌ Tapılmadı.")
-              
+        await message.reply_text("❌ Şəhər tapılmadı.")
+                
 # --- ETİRAF TƏSDİQ SİSTEMİ (YENİ) ---
 @app.on_message(filters.command(["etiraf", "acetiraf"]))
 async def etiraf_handler(client, message):
