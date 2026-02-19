@@ -357,38 +357,73 @@ async def translate_msg(client, message):
 @app.on_message(filters.command("wiki"))
 async def wiki_search(client, message):
     if len(message.command) < 2:
-        return await message.reply_text("🔍 Mövzunu yazın. Məs: `/wiki Bakı`")
-    
-    query = message.text.split(None, 1)[1]
-    
-    try:
-        # 1. Addım: Dəqiq başlığı tapmaq üçün axtarış (Search)
-        search_url = f"https://az.wikipedia.org/w/api.php?action=opensearch&search={urllib.parse.quote(query)}&limit=1&format=json"
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        
-        search_res = requests.get(search_url, headers=headers, timeout=10).json()
-        
-        if not search_res[1]:
-            return await message.reply_text("❌ Təəssüf ki, məlumat tapılmadı.")
-            
-        exact_title = search_res[1][0] # Tapılan ən yaxın dəqiq başlıq
+        return await message.reply_text("🔍 Mövzunu yazın.")
 
-        # 2. Addım: Həmin başlıqla xülasəni çəkmək (Summary)
-        wiki_api = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(exact_title)}"
-        r = requests.get(wiki_api, headers=headers, timeout=10)
-        
-        if r.status_code != 200:
-            return await message.reply_text("❌ Məlumat gətirilərkən xəta oldu.")
-            
-        data = r.json()
-        extract = data.get("extract", "Mətn tapılmadı.")
-        
-        # Sənin şəkildə istədiyin format (Linksiz)
-        res_text = f"📖 **{exact_title}**\n\n{extract}"
-        await message.reply_text(res_text)
-            
-    except Exception:
-        await message.reply_text("⚠️ Axtarış xətası. Bir az sonra yoxlayın.")
+    query = message.text.split(None, 1)[1]
+
+    try:
+        # 1️⃣ AXTARIŞ (AZ Wikipedia)
+        url = "https://az.wikipedia.org/w/api.php"
+        headers = {"User-Agent": "Mozilla/5.0"}
+
+        search_params = {
+            "action": "query",
+            "list": "search",
+            "srsearch": query,
+            "format": "json"
+        }
+
+        search_r = requests.get(
+            url,
+            params=search_params,
+            headers=headers,
+            timeout=10
+        ).json()
+
+        results = search_r.get("query", {}).get("search", [])
+        if not results:
+            return await message.reply_text("❌ Məlumat tapılmadı.")
+
+        title_found = results[0]["title"]
+
+        # 2️⃣ XÜLASƏ + ŞƏKİL
+        extract_params = {
+            "action": "query",
+            "format": "json",
+            "prop": "extracts|pageimages",
+            "exintro": True,
+            "explaintext": True,
+            "titles": title_found,
+            "redirects": 1,
+            "pithumbsize": 500
+        }
+
+        r = requests.get(
+            url,
+            params=extract_params,
+            headers=headers,
+            timeout=10
+        ).json()
+
+        page = list(r["query"]["pages"].values())[0]
+
+        title = page.get("title", "")
+        extract = page.get("extract", "")
+        image = page.get("thumbnail", {}).get("source")
+
+        if not extract:
+            return await message.reply_text("❌ Xülasə yoxdur.")
+
+        # 3️⃣ AÇIQLAYICI CAVAB (UZUN)
+        msg = f"📖 **{title}**\n\n{extract[:2000]}"
+
+        if image:
+            await message.reply_photo(photo=image, caption=msg)
+        else:
+            await message.reply_text(msg)
+
+    except:
+        await message.reply_text("⚠️ Wikipedia-dan cavab alınmadı.")
 
 # --- NAMAZ VAXTLARI (SƏNİN İMPORTLARINLA) ---
 @app.on_message(filters.command("namaz"))
