@@ -416,4 +416,71 @@ async def process_etiraf_callback(client, callback_query):
         # Qrupa göndər
         qrup_user = SOHBET_QRUPU.split('/')[-1]
         await client.send_message(qrup_user, f"{header}:\n\n`{et_msg}`")
-        await call
+                await callback_query.message.edit_text("✅ Etiraf təsdiqləndi və qrupda paylaşıldı.")
+    
+    elif action == "decline_etiraf":
+        await callback_query.message.edit_text("❌ Etiraf rədd edildi.")
+
+# --- OYUNLAR VƏ MƏLUMAT SİSTEMİ ---
+@app.on_message(filters.command(["basket", "futbol", "dart", "slot", "dice"]))
+async def games_handler(client, message):
+    icons = {"basket": "🏀", "futbol": "⚽", "dart": "🎯", "slot": "🎰", "dice": "🎲"}
+    cmd = message.command[0]
+    await client.send_dice(message.chat.id, icons.get(cmd, "🎲"))
+
+@app.on_message(filters.command("id"))
+async def get_id(client, message):
+    user = message.from_user
+    text = f"👤 **İstifadəçi:** {user.first_name}\n🆔 **ID:** `{user.id}`\n"
+    if message.chat.type != ChatType.PRIVATE:
+        text += f"👥 **Qrup ID:** `{message.chat.id}`"
+    await message.reply_text(text)
+
+@app.on_message(filters.command("info"))
+async def user_info(client, message):
+    user = message.reply_to_message.from_user if message.reply_to_message else message.from_user
+    status = await client.get_chat_member(message.chat.id, user.id)
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT msg_count FROM user_stats WHERE user_id = %s", (user.id,))
+    stats = cur.fetchone()
+    msg_count = stats[0] if stats else 0
+    cur.close(); conn.close()
+
+    text = (
+        f"📋 **İstifadəçi Məlumatı:**\n"
+        f"• Ad: {user.first_name}\n"
+        f"• ID: `{user.id}`\n"
+        f"• Status: {status.status}\n"
+        f"• Mesaj Sayı: {msg_count}"
+    )
+    await message.reply_text(text)
+
+# --- BOTUN İŞƏ SALINMASI ---
+async def main():
+    async with app:
+        # Pluginləri yükləyirik
+        load_plugins(app)
+        
+        # Menyu komandalarını təyin edirik
+        await app.set_bot_commands([
+            BotCommand("start", "Botu başladın"),
+            BotCommand("help", "Kömək menyusu"),
+            BotCommand("tag", "Brilyant tağ"),
+            BotCommand("etiraf", "Anonim etiraf"),
+            BotCommand("basket", "Basketbol"),
+            BotCommand("futbol", "Futbol"),
+            BotCommand("slot", "Kazino"),
+            BotCommand("id", "ID göstər"),
+            BotCommand("info", "Məlumat")
+        ])
+        
+        print("🚀 Bot aktivdir və oyunlar yükləndi!")
+        await asyncio.get_event_loop().create_future()
+
+if __name__ == "__main__":
+    try:
+        app.run(main())
+    except KeyboardInterrupt:
+        pass
