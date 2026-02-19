@@ -11,4 +11,3 @@ psycopg2-binary
 wikipedia
 pyowm
 googletrans==4.0.0-rc1
-openai
