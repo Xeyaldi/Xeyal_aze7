@@ -353,80 +353,26 @@ async def translate_msg(client, message):
             except: continue
         await message.reply_text(res)
 
-# --- VİKİPEDİYA (DAHADA TƏKMİLLƏŞMİŞ VƏ LİNKSİZ) ---
-from googletrans import Translator
-
-translator = Translator()
-
+# --- WİKİPEDİA ---
 @app.on_message(filters.command("wiki"))
-async def wiki_search(client, message):
+async def wiki_cmd(client, message):
     if len(message.command) < 2:
-        return await message.reply_text("🔍 Mövzunu yazın.")
-
-    query_az = message.text.split(None, 1)[1]
-    headers = {"User-Agent": "Mozilla/5.0"}
-
+        return
+    
+    wikipedia.set_lang("az")
     try:
-        # 1️⃣ AZ → EN (yalnız axtarış üçün)
-        query_en = translator.translate(query_az, dest="en").text
-
-        # 2️⃣ EN Wikipedia-da axtarış
-        url = "https://en.wikipedia.org/w/api.php"
-
-        search_params = {
-            "action": "query",
-            "list": "search",
-            "srsearch": query_en,
-            "format": "json"
-        }
-
-        search_r = requests.get(
-            url, params=search_params, headers=headers, timeout=10
-        ).json()
-
-        results = search_r.get("query", {}).get("search", [])
-        if not results:
-            return await message.reply_text("❌ Məlumat tapılmadı.")
-
-        title_found = results[0]["title"]
-
-        # 3️⃣ XÜLASƏ + ŞƏKİL
-        extract_params = {
-            "action": "query",
-            "format": "json",
-            "prop": "extracts|pageimages",
-            "exintro": True,
-            "explaintext": True,
-            "titles": title_found,
-            "redirects": 1,
-            "pithumbsize": 500
-        }
-
-        r = requests.get(
-            url, params=extract_params, headers=headers, timeout=10
-        ).json()
-
-        page = list(r["query"]["pages"].values())[0]
-
-        extract_en = page.get("extract", "")
-        image = page.get("thumbnail", {}).get("source")
-
-        if not extract_en:
-            return await message.reply_text("❌ Xülasə yoxdur.")
-
-        # 4️⃣ EN → AZ (istifadəçi üçün)
-        extract_az = translator.translate(extract_en[:2000], dest="az").text
-
-        msg = f"📖 **{page.get('title','')}**\n\n{extract_az}"
-
-        if image:
-            await message.reply_photo(photo=image, caption=msg)
-        else:
-            await message.reply_text(msg)
-
-    except Exception as e:
-        await message.reply_text("⚠️ Wikipedia və ya tərcümə xidməti cavab vermədi.")
-
+        # Mesajdan axtarış sözünü götürür (komandadan sonrakı hissə)
+        search_query = message.text.split(None, 1)[1]
+        
+        # Wikipedia-dan 2 cümləlik xülasə çəkir
+        summary = wikipedia.summary(search_query, sentences=2)
+        
+        await message.reply_text(f"📖 {summary}")
+        
+    except Exception:
+        # Tapılmadıqda və ya xəta olduqda
+        await message.reply_text("❌ Tapılmadı.")
+        
 # --- NAMAZ VAXTLARI (SƏNİN İMPORTLARINLA) ---
 @app.on_message(filters.command("namaz"))
 async def namaz_vaxtlari(client, message):
