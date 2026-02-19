@@ -354,30 +354,34 @@ async def translate_msg(client, message):
         await message.reply_text(res)
 
 # --- VİKİPEDİYA (DAHADA TƏKMİLLƏŞMİŞ VƏ LİNKSİZ) ---
+from googletrans import Translator
+
+translator = Translator()
+
 @app.on_message(filters.command("wiki"))
 async def wiki_search(client, message):
     if len(message.command) < 2:
         return await message.reply_text("🔍 Mövzunu yazın.")
 
-    query = message.text.split(None, 1)[1]
+    query_az = message.text.split(None, 1)[1]
+    headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
-        # 1️⃣ AXTARIŞ (AZ Wikipedia)
-        url = "https://az.wikipedia.org/w/api.php"
-        headers = {"User-Agent": "Mozilla/5.0"}
+        # 1️⃣ AZ → EN (yalnız axtarış üçün)
+        query_en = translator.translate(query_az, dest="en").text
+
+        # 2️⃣ EN Wikipedia-da axtarış
+        url = "https://en.wikipedia.org/w/api.php"
 
         search_params = {
             "action": "query",
             "list": "search",
-            "srsearch": query,
+            "srsearch": query_en,
             "format": "json"
         }
 
         search_r = requests.get(
-            url,
-            params=search_params,
-            headers=headers,
-            timeout=10
+            url, params=search_params, headers=headers, timeout=10
         ).json()
 
         results = search_r.get("query", {}).get("search", [])
@@ -386,7 +390,7 @@ async def wiki_search(client, message):
 
         title_found = results[0]["title"]
 
-        # 2️⃣ XÜLASƏ + ŞƏKİL
+        # 3️⃣ XÜLASƏ + ŞƏKİL
         extract_params = {
             "action": "query",
             "format": "json",
@@ -399,31 +403,29 @@ async def wiki_search(client, message):
         }
 
         r = requests.get(
-            url,
-            params=extract_params,
-            headers=headers,
-            timeout=10
+            url, params=extract_params, headers=headers, timeout=10
         ).json()
 
         page = list(r["query"]["pages"].values())[0]
 
-        title = page.get("title", "")
-        extract = page.get("extract", "")
+        extract_en = page.get("extract", "")
         image = page.get("thumbnail", {}).get("source")
 
-        if not extract:
+        if not extract_en:
             return await message.reply_text("❌ Xülasə yoxdur.")
 
-        # 3️⃣ AÇIQLAYICI CAVAB (UZUN)
-        msg = f"📖 **{title}**\n\n{extract[:2000]}"
+        # 4️⃣ EN → AZ (istifadəçi üçün)
+        extract_az = translator.translate(extract_en[:2000], dest="az").text
+
+        msg = f"📖 **{page.get('title','')}**\n\n{extract_az}"
 
         if image:
             await message.reply_photo(photo=image, caption=msg)
         else:
             await message.reply_text(msg)
 
-    except:
-        await message.reply_text("⚠️ Wikipedia-dan cavab alınmadı.")
+    except Exception as e:
+        await message.reply_text("⚠️ Wikipedia və ya tərcümə xidməti cavab vermədi.")
 
 # --- NAMAZ VAXTLARI (SƏNİN İMPORTLARINLA) ---
 @app.on_message(filters.command("namaz"))
