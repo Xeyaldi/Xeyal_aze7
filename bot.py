@@ -353,7 +353,7 @@ async def translate_msg(client, message):
             except: continue
         await message.reply_text(res)
 
-# --- VİKİPEDİYA VƏ NAMAZ (HEROKU ÜÇÜN STABİL) ---
+# --- VİKİPEDİYA VƏ NAMAZ (TAM STABİL) ---
 @app.on_message(filters.command("wiki"))
 async def wiki_search(client, message):
     if len(message.command) < 2:
@@ -363,16 +363,16 @@ async def wiki_search(client, message):
     status_msg = await message.reply_text("🔎 Məlumat gətirilir...")
     
     try:
-        # Azərbaycan dilini sazlayırıq
+        # Kitabxana vasitəsilə dili sazlayırıq
         wikipedia.set_lang("az")
         
-        # Axtarış edib ən yaxın səhifəni tapırıq
+        # Axtarış edirik
         search_res = wikipedia.search(query)
         if not search_res:
             return await status_msg.edit("❌ Təəssüf ki, heç bir məlumat tapılmadı.")
             
         page_title = search_res[0]
-        # Xülasə və linki götürürük
+        # Xülasəni götürürük
         summary = wikipedia.summary(page_title, sentences=3)
         page_url = wikipedia.page(page_title).url
         
@@ -383,9 +383,10 @@ async def wiki_search(client, message):
         await status_msg.edit(text, disable_web_page_preview=False)
         
     except wikipedia.DisambiguationError as e:
-        await status_msg.edit(f"⚠️ Bir neçə nəticə tapıldı. Daha dəqiq yazın: {e.options[:3]}")
+        await status_msg.edit(f"⚠️ Bir neçə nəticə tapıldı: {e.options[:3]}")
     except Exception as e:
-        await status_msg.edit(f"⚠️ Vikipediya ilə əlaqə qurula bilmədi.")
+        # Əgər kitabxana da alınmasa, xətanı göstərsin ki, bilək
+        await status_msg.edit(f"⚠️ Vikipediya xətası: {str(e)[:50]}")
 
 @app.on_message(filters.command("namaz"))
 async def namaz_vaxtlari(client, message):
@@ -404,7 +405,7 @@ async def namaz_vaxtlari(client, message):
                 f"🌃 İşа: `{t['Isha']}`")
         await message.reply_text(text)
     except:
-        await message.reply_text("❌ Xəta! Şəhər adını düzgün yazın (Məs: `/namaz Ganja`).")
+        await message.reply_text("❌ Namaz vaxtı tapılmadı.")
         
 # --- ETİRAF TƏSDİQ SİSTEMİ (YENİ) ---
 @app.on_message(filters.command(["etiraf", "acetiraf"]))
