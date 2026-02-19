@@ -353,53 +353,58 @@ async def translate_msg(client, message):
             except: continue
         await message.reply_text(res)
 
-# --- VİKİPEDİYA VƏ NAMAZ (SADƏLƏŞDİRİLMİŞ) ---
+# --- VİKİPEDİYA VƏ NAMAZ (HEROKU ÜÇÜN STABİL) ---
 @app.on_message(filters.command("wiki"))
 async def wiki_search(client, message):
     if len(message.command) < 2:
-        return await message.reply_text("🔍 Zəhmət olmasa mövzunu yazın.\nNümunə: `/wiki Bakı`")
+        return await message.reply_text("🔍 Mövzunu yazın. Məs: `/wiki Bakı`")
     
-    query = message.text.split(None, 1)[1].strip().replace(" ", "_")
-    status_msg = await message.reply_text("🔎 Məlumat axtarılır...")
+    query = message.text.split(None, 1)[1].strip()
+    status_msg = await message.reply_text("🔎 Məlumat gətirilir...")
     
     try:
-        # Birbaşa xülasə API-nə müraciət edirik
-        url = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}"
-        r = requests.get(url, timeout=10).json()
+        # Azərbaycan dilini sazlayırıq
+        wikipedia.set_lang("az")
         
-        if "title" in r and r.get("type") != "not_found":
-            title = r.get("title")
-            extract = r.get("extract", "Məlumat xülasəsi tapılmadı.")
-            link = r.get("content_urls", {}).get("desktop", {}).get("page")
+        # Axtarış edib ən yaxın səhifəni tapırıq
+        search_res = wikipedia.search(query)
+        if not search_res:
+            return await status_msg.edit("❌ Təəssüf ki, heç bir məlumat tapılmadı.")
             
-            await status_msg.edit(f"📖 **{title}**\n\n{extract}\n\n🔗 [Daha çox oxu]({link})", disable_web_page_preview=False)
-        else:
-            await status_msg.edit("❌ Təəssüf ki, bu mövzuda məlumat tapılmadı.")
-            
+        page_title = search_res[0]
+        # Xülasə və linki götürürük
+        summary = wikipedia.summary(page_title, sentences=3)
+        page_url = wikipedia.page(page_title).url
+        
+        text = (f"📖 **{page_title}**\n\n"
+                f"{summary}\n\n"
+                f"🔗 [Tam oxu]({page_url})")
+        
+        await status_msg.edit(text, disable_web_page_preview=False)
+        
+    except wikipedia.DisambiguationError as e:
+        await status_msg.edit(f"⚠️ Bir neçə nəticə tapıldı. Daha dəqiq yazın: {e.options[:3]}")
     except Exception as e:
-        await status_msg.edit(f"⚠️ Xəta baş verdi: {str(e)[:50]}")
+        await status_msg.edit(f"⚠️ Vikipediya ilə əlaqə qurula bilmədi.")
 
 @app.on_message(filters.command("namaz"))
 async def namaz_vaxtlari(client, message):
     city = message.command[1] if len(message.command) > 1 else "Baku"
-    status_msg = await message.reply_text(f"⏳ {city.capitalize()} üçün namaz vaxtları gətirilir...")
     try:
         url = f"https://api.aladhan.com/v1/timingsByCity?city={urllib.parse.quote(city)}&country=Azerbaijan&method=2"
         r = requests.get(url, timeout=10).json()
         t = r['data']['timings']
         
-        text = (
-            f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\n"
-            f"🌅 Sübh: `{t['Fajr']}`\n"
-            f"☀️ Günəş: `{t['Sunrise']}`\n"
-            f"🕛 Zöhr: `{t['Dhuhr']}`\n"
-            f"🕒 Əsr: `{t['Asr']}`\n"
-            f"🌇 Axşam: `{t['Maghrib']}`\n"
-            f"🌃 İşа: `{t['Isha']}`"
-        )
-        await status_msg.edit(text)
-    except Exception:
-        await status_msg.edit("❌ Xəta! Şəhər adını düzgün yazın (Məs: `/namaz Ganja`).")
+        text = (f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\n"
+                f"🌅 Sübh: `{t['Fajr']}`\n"
+                f"☀️ Günəş: `{t['Sunrise']}`\n"
+                f"🕛 Zöhr: `{t['Dhuhr']}`\n"
+                f"🕒 Əsr: `{t['Asr']}`\n"
+                f"🌇 Axşam: `{t['Maghrib']}`\n"
+                f"🌃 İşа: `{t['Isha']}`")
+        await message.reply_text(text)
+    except:
+        await message.reply_text("❌ Xəta! Şəhər adını düzgün yazın (Məs: `/namaz Ganja`).")
         
 # --- ETİRAF TƏSDİQ SİSTEMİ (YENİ) ---
 @app.on_message(filters.command(["etiraf", "acetiraf"]))
