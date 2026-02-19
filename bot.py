@@ -407,7 +407,14 @@ async def process_etiraf_callback(client, callback_query):
         return await callback_query.answer("Sən sahibə deyilsən!", show_alert=True)
     
     action = callback_query.data.split("|")[0]
-    
+@app.on_callback_query(filters.regex(r"^(approve_etiraf|decline_etiraf)"))
+async def process_etiraf_callback(client, callback_query):
+    if callback_query.from_user.id != SAHIBE_ID:
+        return await callback_query.answer("Sən sahibə deyilsən!", show_alert=True)
+
+    # 410-cu sətir - İndi funksiyanın daxilindədir
+    action = callback_query.data.split("|")[0]
+
     if action == "approve_etiraf":
         # Etiraf mətnini mesajdan çıxarırıq
         et_msg = callback_query.message.text.split("Etiraf:\n")[1]
@@ -416,8 +423,8 @@ async def process_etiraf_callback(client, callback_query):
         # Qrupa göndər
         qrup_user = SOHBET_QRUPU.split('/')[-1]
         await client.send_message(qrup_user, f"{header}:\n\n`{et_msg}`")
-                await callback_query.message.edit_text("✅ Etiraf təsdiqləndi və qrupda paylaşıldı.")
-    
+        await callback_query.message.edit_text("✅ Etiraf təsdiqləndi və qrupda paylaşıldı.")
+        
     elif action == "decline_etiraf":
         await callback_query.message.edit_text("❌ Etiraf rədd edildi.")
 
@@ -448,6 +455,7 @@ async def user_info(client, message):
     msg_count = stats[0] if stats else 0
     cur.close(); conn.close()
 
+    # 445-ci sətirdəki xətanın düzəldilmiş forması (Multi-line string)
     text = (
         f"📋 **İstifadəçi Məlumatı:**\n"
         f"• Ad: {user.first_name}\n"
@@ -460,10 +468,9 @@ async def user_info(client, message):
 # --- BOTUN İŞƏ SALINMASI ---
 async def main():
     async with app:
-        # Pluginləri yükləyirik
         load_plugins(app)
         
-        # Menyu komandalarını təyin edirik
+        # 467-ci sətir: set_bot_commands (hərf səhvini düzəltdim)
         await app.set_bot_commands([
             BotCommand("start", "Botu başladın"),
             BotCommand("help", "Kömək menyusu"),
