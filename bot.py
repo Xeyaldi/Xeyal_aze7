@@ -353,49 +353,50 @@ async def translate_msg(client, message):
             except: continue
         await message.reply_text(res)
 
-# --- VİKİPEDİYA VƏ NAMAZ (YENİLƏNDİ) ---
+# --- VİKİPEDİYA VƏ NAMAZ (SADƏLƏŞDİRİLMİŞ) ---
 @app.on_message(filters.command("wiki"))
 async def wiki_search(client, message):
     if len(message.command) < 2:
-        return await message.reply_text("🔍 Zəhmət olmasa mövzunu yazın.\nNümunə: `/wiki bakı`")
-    query = message.text.split(None, 1)[1].strip()
-    status_msg = await message.reply_text("🔎 Məlumat axtarılır və düzəldilir...")
+        return await message.reply_text("🔍 Zəhmət olmasa mövzunu yazın.\nNümunə: `/wiki Bakı`")
+    
+    query = message.text.split(None, 1)[1].strip().replace(" ", "_")
+    status_msg = await message.reply_text("🔎 Məlumat axtarılır...")
+    
     try:
-        search_url = f"https://az.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(query)}&format=json"
-        search_res = requests.get(search_url, timeout=10).json()
-        if not search_res.get("query", {}).get("search"):
-            return await status_msg.edit("❌ Təəssüf ki, heç bir oxşar məlumat tapılmadı.")
-        correct_title = search_res["query"]["search"][0]["title"]
-        summary_url = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(correct_title)}"
-        r = requests.get(summary_url, timeout=10).json()
-        if r.get("type") in ["standard", "disambiguation"]:
+        # Birbaşa xülasə API-nə müraciət edirik
+        url = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}"
+        r = requests.get(url, timeout=10).json()
+        
+        if "title" in r and r.get("type") != "not_found":
             title = r.get("title")
-            extract = r.get("extract", "Məlumat tapılmadı.")
+            extract = r.get("extract", "Məlumat xülasəsi tapılmadı.")
             link = r.get("content_urls", {}).get("desktop", {}).get("page")
-            wiki_text = (f"📖 **Düzəldilmiş başlıq:** {title}\n\n"
-                        f"{extract}\n\n"
-                        f"🔗 [Daha çox oxu]({link})")
-            await status_msg.edit(wiki_text, disable_web_page_preview=False)
+            
+            await status_msg.edit(f"📖 **{title}**\n\n{extract}\n\n🔗 [Daha çox oxu]({link})", disable_web_page_preview=False)
         else:
-            await status_msg.edit("❌ Məlumat tapılmadı.")
-    except Exception:
-        await status_msg.edit("⚠️ Vikipediya xətası baş verdi.")
+            await status_msg.edit("❌ Təəssüf ki, bu mövzuda məlumat tapılmadı.")
+            
+    except Exception as e:
+        await status_msg.edit(f"⚠️ Xəta baş verdi: {str(e)[:50]}")
 
 @app.on_message(filters.command("namaz"))
 async def namaz_vaxtlari(client, message):
     city = message.command[1] if len(message.command) > 1 else "Baku"
-    status_msg = await message.reply_text(f"⏳ {city.capitalize()} üçün namaz vaxtları...")
+    status_msg = await message.reply_text(f"⏳ {city.capitalize()} üçün namaz vaxtları gətirilir...")
     try:
         url = f"https://api.aladhan.com/v1/timingsByCity?city={urllib.parse.quote(city)}&country=Azerbaijan&method=2"
         r = requests.get(url, timeout=10).json()
         t = r['data']['timings']
-        text = (f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\n"
-                f"🌅 Sübh: `{t['Fajr']}`\n"
-                f"☀️ Günəş: `{t['Sunrise']}`\n"
-                f"🕛 Zöhr: `{t['Dhuhr']}`\n"
-                f"🕒 Əsr: `{t['Asr']}`\n"
-                f"🌇 Axşam: `{t['Maghrib']}`\n"
-                f"🌃 İşа: `{t['Isha']}`")
+        
+        text = (
+            f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\n"
+            f"🌅 Sübh: `{t['Fajr']}`\n"
+            f"☀️ Günəş: `{t['Sunrise']}`\n"
+            f"🕛 Zöhr: `{t['Dhuhr']}`\n"
+            f"🕒 Əsr: `{t['Asr']}`\n"
+            f"🌇 Axşam: `{t['Maghrib']}`\n"
+            f"🌃 İşа: `{t['Isha']}`"
+        )
         await status_msg.edit(text)
     except Exception:
         await status_msg.edit("❌ Xəta! Şəhər adını düzgün yazın (Məs: `/namaz Ganja`).")
