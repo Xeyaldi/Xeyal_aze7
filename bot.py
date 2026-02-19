@@ -353,59 +353,75 @@ async def translate_msg(client, message):
             except: continue
         await message.reply_text(res)
 
-# --- VİKİPEDİYA FUNKSİYASI ---
+# --- VİKİPEDİYA (DAHADA TƏKMİLLƏŞMİŞ VƏ LİNKSİZ) ---
 @app.on_message(filters.command("wiki"))
 async def wiki_search(client, message):
     if len(message.command) < 2:
-        return await message.reply_text("🔍 Mövzunu yazın.")
+        return await message.reply_text("🔍 Mövzunu yazın. Məs: `/wiki Bakı`")
     
-    query = " ".join(message.command[1:])
+    query = message.text.split(None, 1)[1]
     
     try:
-        async with httpx.AsyncClient() as session:
-            # Dəqiq axtarış üçün Wikipedia-nın REST API-sindən istifadə edirik
-            # Bu metod "Azərbaycan" və ya "Bakı" kimi sözləri daha dəqiq tapır
-            wiki_api = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(query)}"
-            headers = {'User-Agent': 'Mozilla/5.0'}
+        # 1. Addım: Dəqiq başlığı tapmaq üçün axtarış (Search)
+        search_url = f"https://az.wikipedia.org/w/api.php?action=opensearch&search={urllib.parse.quote(query)}&limit=1&format=json"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        
+        search_res = requests.get(search_url, headers=headers, timeout=10).json()
+        
+        if not search_res[1]:
+            return await message.reply_text("❌ Təəssüf ki, məlumat tapılmadı.")
             
-            r = await session.get(wiki_api, headers=headers, timeout=10)
-            
-            if r.status_code != 200:
-                return await message.reply_text("❌ Məlumat tapılmadı.")
-            
-            data = r.json()
-            title = data.get("title")
-            extract = data.get("extract", "")
+        exact_title = search_res[1][0] # Tapılan ən yaxın dəqiq başlıq
 
-            # Sənin istədiyin format (Kitab emojisi, Qalın başlıq, Mətn və LİNKSİZ)
-            res_text = f"📖 **{title}**\n\n{extract}"
+        # 2. Addım: Həmin başlıqla xülasəni çəkmək (Summary)
+        wiki_api = f"https://az.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(exact_title)}"
+        r = requests.get(wiki_api, headers=headers, timeout=10)
+        
+        if r.status_code != 200:
+            return await message.reply_text("❌ Məlumat gətirilərkən xəta oldu.")
             
-            await message.reply_text(res_text)
+        data = r.json()
+        extract = data.get("extract", "Mətn tapılmadı.")
+        
+        # Sənin şəkildə istədiyin format (Linksiz)
+        res_text = f"📖 **{exact_title}**\n\n{extract}"
+        await message.reply_text(res_text)
             
     except Exception:
-        await message.reply_text("⚠️ Xəta baş verdi.")
+        await message.reply_text("⚠️ Axtarış xətası. Bir az sonra yoxlayın.")
 
-# --- NAMAZ FUNKSİYASI ---
+# --- NAMAZ VAXTLARI (SƏNİN İMPORTLARINLA) ---
 @app.on_message(filters.command("namaz"))
 async def namaz_vaxtlari(client, message):
+    # Əgər şəhər yazılmayıbsa Bakı götürür
     city = message.command[1] if len(message.command) > 1 else "Baku"
+    
     try:
-        async with httpx.AsyncClient() as session:
-            url = f"https://api.aladhan.com/v1/timingsByCity?city={city}&country=Azerbaijan&method=3"
-            r = await session.get(url, timeout=10)
-            t = r.json()['data']['timings']
+        # Namaz vaxtları API
+        url = f"https://api.aladhan.com/v1/timingsByCity?city={city}&country=Azerbaijan&method=3"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        
+        r = requests.get(url, headers=headers, timeout=10).json()
+        
+        if 'data' not in r:
+            return await message.reply_text("❌ Şəhər tapılmadı (İngiliscə yazın. Məs: /namaz Ganja)")
             
-            res = (f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\n"
-                   f"🌅 Sübh: `{t['Fajr']}`\n"
-                   f"☀️ Günəş: `{t['Sunrise']}`\n"
-                   f"🕛 Zöhr: `{t['Dhuhr']}`\n"
-                   f"🕒 Əsr: `{t['Asr']}`\n"
-                   f"🌇 Axşam: `{t['Maghrib']}`\n"
-                   f"🌃 İşа: `{t['Isha']}`")
-            await message.reply_text(res)
-    except:
-        await message.reply_text("❌ Şəhər tapılmadı.")
-                        
+        t = r['data']['timings']
+        
+        # Səliqəli format
+        res = (
+            f"🕋 **{city.capitalize()} Namaz Vaxtları**\n\n"
+            f"🌅 Sübh: `{t['Fajr']}`\n"
+            f"☀️ Günəş: `{t['Sunrise']}`\n"
+            f"🕛 Zöhr: `{t['Dhuhr']}`\n"
+            f"🕒 Əsr: `{t['Asr']}`\n"
+            f"🌇 Axşam: `{t['Maghrib']}`\n"
+            f"🌃 İşа: `{t['Isha']}`"
+        )
+        await message.reply_text(res)
+        
+    except Exception:
+        await message.reply_text("⚠️ Namaz vaxtlarını gətirmək mümkün olmadı.")                        
 # --- ETİRAF TƏSDİQ SİSTEMİ (YENİ) ---
 @app.on_message(filters.command(["etiraf", "acetiraf"]))
 async def etiraf_handler(client, message):
