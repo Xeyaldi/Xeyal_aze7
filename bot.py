@@ -23,7 +23,7 @@ def load_plugins(client):
                     importlib.import_module(module_name)
                 except:
                     pass
-
+                    
 # --- AYARLAR ---
 API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
