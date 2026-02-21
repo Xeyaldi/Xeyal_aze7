@@ -518,6 +518,7 @@ async def user_info(client, message):
 # --- BOTUN İŞƏ SALINMASI ---
 async def main():
     async with app:
+        # Pluginləri yükləyirik
         load_plugins(app)
         
         # 467-ci sətir: set_bot_commands (hərf səhvini düzəltdim)
@@ -544,6 +545,7 @@ async def main():
 
 if __name__ == "__main__":
     try:
+        # Əsas düzəliş budur: app.run() yerinə app.run(main()) 
         app.run(main())
     except KeyboardInterrupt:
         pass
