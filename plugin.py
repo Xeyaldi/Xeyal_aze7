@@ -2,6 +2,7 @@ from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import random
 import asyncio
+from bot import app  # <--- BU SƏTİRİ MÜTLƏQ ƏLAVƏ ET
 
 # --- MAŞINLAR MENYUSU (12 MAŞIN) ---
 @app.on_message(filters.command("masinlar"))
