@@ -151,6 +151,114 @@ async def qadaga_cmd(client, message):
     conn.close()
     await message.reply_text(f"✅ **{word}** sözü qadağan olunanlara əlavə edildi.")
 
+import os
+import asyncio
+import yt_dlp
+import requests
+from pyrogram import filters, Client
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from youtubesearchpython import VideosSearch
+from bot import app  #
+
+# --- PARAMETRLƏR ---
+# batbin.me-dən aldığın cookie faylını cookies.txt olaraq botun qovluğuna qoymalısan
+COOKIES = "cookies.txt" 
+
+# 1. 🔍 YOUTUBE AXTARIŞ (Ancaq /youtube yazanda işləyir)
+@app.on_message(filters.command("youtube") & filters.group)
+async def youtube_search(client, message):
+    if len(message.command) < 2:
+        return await message.reply_text("🔎 Axtarılacaq sözü yazın: `/youtube Röya`")
+    
+    query = " ".join(message.command[1:])
+    status = await message.reply_text("🔎 YouTube-da axtarılır...")
+    
+    try:
+        search = VideosSearch(query, limit=10)
+        results = search.result()['result']
+        
+        if not results:
+            return await status.edit_text("❌ Heç bir nəticə tapılmadı.")
+        
+        buttons = []
+        for video in results:
+            buttons.append([InlineKeyboardButton(
+                f"🎬 {video['title'][:30]}...", 
+                callback_query_data=f"yt_{video['id']}"
+            )])
+        
+        await status.edit_text(
+            f"📺 **'{query}' üçün nəticələr:**\n\nYükləmək istədiyiniz videonu seçin:",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+    except Exception as e:
+        await status.edit_text(f"❌ Axtarış xətası: {str(e)}")
+
+# 2. 🔗 LİNK TUTUCU (Sosial şəbəkə linki atılan kimi işə düşür)
+@app.on_message(filters.regex(r"(https?://(?:www\.)?(?:instagram\.com|tiktok\.com|twitter\.com|x\.com|facebook\.com)\S+)"))
+async def link_downloader(client, message):
+    url = message.matches[0].group(1)
+    
+    buttons = [
+        [InlineKeyboardButton("🎵 Mahnı (MP3)", callback_data=f"ext_mp3_{url}"),
+         InlineKeyboardButton("🎥 Video (MP4)", callback_data=f"ext_mp4_{url}")]
+    ]
+    
+    await message.reply_text(
+        "🔗 Sosial şəbəkə linki aşkarlandı!\nHansı formatda yükləyim?",
+        reply_to_message_id=message.id,
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
+
+# 3. 📥 YÜKLƏMƏ MOTORU (Bütün sosial şəbəkələr üçün)
+@app.on_callback_query(filters.regex("^(yt_|dl_|ext_)"))
+async def universal_downloader(client, callback_query: CallbackQuery):
+    data = callback_query.data
+    
+    # YouTube-dan gələn axtarış seçimi
+    if data.startswith("yt_"):
+        vid = data.split("_")[1]
+        url = f"https://www.youtube.com/watch?v={vid}"
+        buttons = [
+            [InlineKeyboardButton("🎵 Mahnı (MP3)", callback_data=f"dl_mp3_{vid}"),
+             InlineKeyboardButton("🎥 Video (MP4)", callback_data=f"dl_mp4_{vid}")]
+        ]
+        return await callback_query.edit_message_text("📥 Formatı seçin:", reply_markup=InlineKeyboardMarkup(buttons))
+
+    # Yükləmə əmri
+    if data.startswith("dl_") or data.startswith("ext_"):
+        _, ftype, target = data.split("_", 2)
+        url = f"https://www.youtube.com/watch?v={target}" if data.startswith("dl_") else target
+        
+        await callback_query.edit_message_text("⏳ Hazırlanır, bir az gözləyin...")
+        
+        ydl_opts = {
+            'format': 'bestaudio/best' if ftype == 'mp3' else 'best',
+            'outtmpl': f'downloads/%(title)s.%(ext)s',
+            'quiet': True,
+        }
+        
+        # Cookie faylı varsa istifadə et
+        if os.path.exists(COOKIES):
+            ydl_opts['cookiefile'] = COOKIES
+
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                filename = ydl.prepare_filename(info)
+                
+                if ftype == "mp3":
+                    await callback_query.message.reply_audio(filename, caption=f"🎵 {info.get('title', 'Mahnı')}")
+                else:
+                    await callback_query.message.reply_video(filename, caption=f"🎥 {info.get('title', 'Video')}")
+                
+                if os.path.exists(filename):
+                    os.remove(filename)
+                await callback_query.message.delete()
+                
+        except Exception as e:
+            await callback_query.edit_message_text(f"❌ Yükləmə xətası: {str(e)}")
+            
 # --- YÖNLƏNDİRMƏ ---
 @app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
 async def broadcast_func(client, message):
