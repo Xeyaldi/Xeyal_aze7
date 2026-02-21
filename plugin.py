@@ -4,10 +4,10 @@ import random
 import asyncio
 
 # DÜZƏLİŞ: 'from bot import app' sətri silindi, çünki bu sətir botu dondurur (Circular Import).
-# İndi isə aşağıdakı bütün funksiyalarda @app yerinə @Client yazmalısan.
+# İndi isə aşağıdakı bütün funksiyalarda @app yerinə @Client yazıldı.
 
 # --- MAŞINLAR MENYUSU (12 MAŞIN) ---
-@app.on_message(filters.command("masinlar"))
+@Client.on_message(filters.command("masinlar"))
 async def masin_menyu(client, message):
     buttons = [
         [InlineKeyboardButton("🏎️ Ferrari", callback_data="car_ferrari"),
@@ -32,7 +32,7 @@ async def masin_menyu(client, message):
     )
 
 # --- MƏLUMATLAR VƏ DETALLI EFFEKTLƏR ---
-@app.on_callback_query(filters.regex("^car_"))
+@Client.on_callback_query(filters.regex("^car_"))
 async def car_info(client, callback_query: CallbackQuery):
     data = callback_query.data.split("_")[1]
     
@@ -163,7 +163,7 @@ def font_converter(text, font_type):
     return result
 
 # --- ŞRİFT KOMANDASI ---
-@app.on_message(filters.command("font"))
+@Client.on_message(filters.command("font"))
 async def font_cmd(client, message):
     if len(message.command) < 2:
         return await message.reply_text("✨ **Zəhmət olmasa mətni yazın.**\nMəsələn: `/font Salam`")
@@ -197,7 +197,7 @@ async def font_cmd(client, message):
     )
 
 # --- CALLBACK (Şrift üçün) ---
-@app.on_callback_query(filters.regex("^fn_"))
+@Client.on_callback_query(filters.regex("^fn_"))
 async def font_callback(client, callback_query: CallbackQuery):
     font_id = callback_query.data.split("_")[1]
     
@@ -217,7 +217,7 @@ async def font_callback(client, callback_query: CallbackQuery):
     )
 
 # --- 💖 SEVGİ LABORATORİYASI (ULTRA ELİTE V4) ---
-@app.on_message(filters.command("sevgi") & filters.group)
+@Client.on_message(filters.command("sevgi") & filters.group)
 async def love_ultra_elite(client, message):
     if message.reply_to_message:
         target = message.reply_to_message.from_user
@@ -268,7 +268,7 @@ async def love_ultra_elite(client, message):
     await status.edit_text(final)
 
 # --- 👊 ŞAPALAQ (SLAP MEGA PACK - 25+ VARIANT) ---
-@app.on_message(filters.command("slap") & filters.group)
+@Client.on_message(filters.command("slap") & filters.group)
 async def slap_mega_pack(client, message):
     if message.reply_to_message:
         t_user = message.reply_to_message.from_user
@@ -311,7 +311,7 @@ async def slap_mega_pack(client, message):
     await message.reply_text(random.choice(slaps))
 
 # --- 🧠 ZEKA ÖLÇƏN (IQ TEST PRO) ---
-@app.on_message(filters.command("zeka") & filters.group)
+@Client.on_message(filters.command("zeka") & filters.group)
 async def zeka_olcen(client, message):
     if message.reply_to_message:
         target = message.reply_to_message.from_user
@@ -364,7 +364,7 @@ async def zeka_olcen(client, message):
     await status.edit_text(final_zeka)
 
   # --- 🍀 GÜNÜN ŞANSI ---
-@app.on_message(filters.command("sans") & filters.group)
+@Client.on_message(filters.command("sans") & filters.group)
 async def day_luck(client, message):
     status = await message.reply_text("🔮 **Kainatın enerjisi oxunur...**")
     await asyncio.sleep(0.8)
@@ -389,4 +389,4 @@ async def day_luck(client, message):
         "Sevgidə yeni bir qığılcım gözlənilir.", "Sağlamlığına diqqət yetir, çox yorulma."
     ]
     
-    await status.edit_text(luck_text + f"_{random.choice(advices)}_")
+    await status.edit_text(luck_text + f"_{random.choice(advices)}_")                   
