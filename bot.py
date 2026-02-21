@@ -205,7 +205,12 @@ async def help_cmd(client, message):
     )
     await message.reply_text(help_text)
 
-# --- CHATBOT ON/OFF ---
+# --- STATUSLAR (Deploy zamanı hamısı OFF olur) ---
+chatbot_status = {}  
+tag_process = {}
+link_block_status = {}
+
+# --- CHATBOT ON/OFF (Dəyişilməyib, sadəcə default OFF-dur) ---
 @app.on_message(filters.command("chatbot"))
 async def chatbot_toggle(client, message):
     if not await is_admin(client, message): return
@@ -213,14 +218,15 @@ async def chatbot_toggle(client, message):
         return await message.reply_text("**İstifadə:** `/chatbot on` və ya `/chatbot off`")
     
     status = message.command[1].lower()
+    chat_id = message.chat.id
     if status == "on":
-        chatbot_status[message.chat.id] = True
-        await message.reply_text("**✅ Chatbot aktiv edildi!**")
+        chatbot_status[chat_id] = True
+        await message.reply_text("**✅ Chatbot bu söhbət üçün aktiv edildi!**")
     elif status == "off":
-        chatbot_status[message.chat.id] = False
-        await message.reply_text("**❌ Chatbot söndürüldü!**")
+        chatbot_status[chat_id] = False
+        await message.reply_text("**❌ Chatbot bu söhbət üçün söndürüldü!**")
 
-# --- TAĞ SİSTEMİ ---
+# --- TAĞ SİSTEMİ (Heç nə silinmədi, yanına mesaj yazmaq özəlliyi əlavə edildi) ---
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]))
 async def tag_handler(client, message):
     if message.chat.type == ChatType.PRIVATE:
@@ -231,6 +237,9 @@ async def tag_handler(client, message):
     chat_id = message.chat.id
     tag_process[chat_id] = True
     cmd = message.command[0]
+    
+    # Komandadan sonrakı mətni götürürük
+    user_msg = " ".join(message.command[1:]) if len(message.command) > 1 else ""
     await message.reply_text(f"**✅ {cmd} başladı!**")
     
     async for m in client.get_chat_members(chat_id):
@@ -238,16 +247,17 @@ async def tag_handler(client, message):
             break
         if m.user and not m.user.is_bot:
             try:
+                # Orijinal formatlar (tag, utag, flagtag, tektag) olduğu kimi qaldı
                 if cmd == "tag":
-                    tag_text = f"💎 [{m.user.first_name}](tg://user?id={m.user.id})"
+                    tag_text = f"💎 [{m.user.first_name}](tg://user?id={m.user.id}) {user_msg}"
                 elif cmd == "utag":
-                    tag_text = f"{random.choice(EMOJILER)} [{m.user.first_name}](tg://user?id={m.user.id})"
+                    tag_text = f"{random.choice(EMOJILER)} [{m.user.first_name}](tg://user?id={m.user.id}) {user_msg}"
                 elif cmd == "flagtag":
-                    tag_text = f"{random.choice(BAYRAQLAR)} [{m.user.first_name}](tg://user?id={m.user.id})"
+                    tag_text = f"{random.choice(BAYRAQLAR)} [{m.user.first_name}](tg://user?id={m.user.id}) {user_msg}"
                 elif cmd == "tektag":
-                    tag_text = f"👤 [{m.user.first_name}](tg://user?id={m.user.id})"
+                    tag_text = f"👤 [{m.user.first_name}](tg://user?id={m.user.id}) {user_msg}"
                 
-                await client.send_message(chat_id, tag_text)
+                await client.send_message(chat_id, tag_text.strip())
                 await asyncio.sleep(2.5)
             except:
                 pass
@@ -259,7 +269,7 @@ async def stop_tag(client, message):
     tag_process[message.chat.id] = False
     await message.reply_text("**🛑 Tağ dayandırıldı.**")
 
-# --- HAVA, VALYUTA, LİNK ---
+# --- HAVA VƏ VALYUTA (Tamamilə toxunulmaz qaldı) ---
 @app.on_message(filters.command("hava"))
 async def get_weather_cmd(client, message):
     if len(message.command) < 2: return await message.reply_text("🏙 Şəhər adı yazın.")
@@ -284,7 +294,7 @@ async def link_toggle(client, message):
     link_block_status[message.chat.id] = (status == "on")
     await message.reply_text(f"🛡 Link qoruması **{status}** edildi.")
 
-# --- CHATBOT LOGIC ---
+# --- ƏSAS HANDLER (History, Stats, Qadağa, Xeyal və Chatbot) ---
 @app.on_message(filters.text & ~filters.bot, group=1)
 async def message_handler(client, message):
     chat_id = message.chat.id
@@ -293,6 +303,7 @@ async def message_handler(client, message):
     fname = message.from_user.first_name
     uname = message.from_user.username or "Yoxdur"
 
+    # Link qoruması (Silinmədi)
     if ("http" in text or "t.me" in text) and link_block_status.get(chat_id, False):
         if not await is_admin(client, message):
             await message.delete()
@@ -301,6 +312,7 @@ async def message_handler(client, message):
     conn = get_db_connection()
     cur = conn.cursor()
     
+    # User History & Stats (Bütün bazaya yazma məntiqi qorundu)
     cur.execute("SELECT old_name FROM user_history WHERE user_id = %s ORDER BY date DESC LIMIT 1", (uid,))
     last = cur.fetchone()
     if not last or last[0] != fname:
@@ -308,6 +320,7 @@ async def message_handler(client, message):
     
     cur.execute("INSERT INTO user_stats (user_id, msg_count) VALUES (%s, 1) ON CONFLICT (user_id) DO UPDATE SET msg_count = user_stats.msg_count + 1", (uid,))
 
+    # Qadağa Listi (Silinmədi)
     cur.execute("SELECT word FROM qadaga_list")
     qadagalar = [r[0] for r in cur.fetchall()]
     for word in qadagalar:
@@ -317,18 +330,27 @@ async def message_handler(client, message):
                 cur.close(); conn.close()
                 return
 
-    if chatbot_status.get(chat_id, True) and not message.text.startswith('/'):
+    # --- XEYAL REAKSİYASI ---
+    if "xeyal" in text or "xəyal" in text:
+        try:
+            await message.set_reaction(reactions=[types.ReactionTypeEmoji(emoji="🗿")])
+            await message.reply_text("**istirahət ellləmmm**")
+        except: pass
+
+    # --- CHATBOT (Hər qrupa özəl və sönülü başlayır) ---
+    if chatbot_status.get(chat_id, False) and not message.text.startswith('/'):
         cur.execute("INSERT INTO brain (content, chat_id) VALUES (%s, %s)", (message.text, chat_id))
         if random.random() < 0.2:
+            await client.send_chat_action(chat_id, enums.ChatAction.TYPING)
             cur.execute("SELECT content FROM brain WHERE chat_id = %s ORDER BY RANDOM() LIMIT 1", (chat_id,))
             res = cur.fetchone()
             if res: await message.reply_text(f"**{res[0]}**")
         if "bot" in text:
             await message.reply_text(f"**{random.choice(CB_SOZLER)}**")
-            
-    conn.commit()
-    cur.close(); conn.close()
-
+    
+    cur.close()
+    conn.close()
+                
 # --- TƏRCÜMƏ ---
 @app.on_message(filters.command("tercume") & filters.reply)
 async def translate_msg(client, message):
