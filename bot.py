@@ -530,7 +530,13 @@ async def main():
             BotCommand("futbol", "Futbol"),
             BotCommand("slot", "Kazino"),
             BotCommand("id", "ID göstər"),
-            BotCommand("info", "Məlumat")
+            BotCommand("info", "Məlumat"),
+            BotCommand("masinlar", "Maşın kataloqu"),
+            BotCommand("sevgi", "Sevgi testi"),
+            BotCommand("zeka", "Zəka ölçən"),
+            BotCommand("sans", "Günün şansı"),
+            BotCommand("slap", "Şillə vurmaq"),
+            BotCommand("font", "Şrift dəyişdirici")
         ])
         
         print("🚀 Bot aktivdir və oyunlar yükləndi!")
