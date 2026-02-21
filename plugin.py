@@ -1,8 +1,10 @@
-from pyrogram import filters
+from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import random
 import asyncio
-from bot import app  # <--- BU SƏTİRİ MÜTLƏQ ƏLAVƏ ET
+
+# DÜZƏLİŞ: 'from bot import app' sətri silindi, çünki bu sətir botu dondurur (Circular Import).
+# İndi isə aşağıdakı bütün funksiyalarda @app yerinə @Client yazmalısan.
 
 # --- MAŞINLAR MENYUSU (12 MAŞIN) ---
 @app.on_message(filters.command("masinlar"))
