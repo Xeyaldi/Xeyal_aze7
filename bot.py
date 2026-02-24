@@ -157,7 +157,7 @@ import yt_dlp
 import requests
 from pyrogram import filters, Client
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-from youtube_search import YoutubeSearch
+from youtubesearchpython import VideosSearch
 from bot import app  #
 
 # --- PARAMETRLƏR ---
