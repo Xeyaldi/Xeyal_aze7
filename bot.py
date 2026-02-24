@@ -33,10 +33,10 @@ API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-OWNERS = [6241071228, 7592728364, 8024893255] 
-SAHIBE_ID = 7592728364 
+OWNERS = [8568941859, 8371395083, 8024893255] 
+SAHIBE_ID = 8024893255
 SAKIL_LINKI = "https://i.postimg.cc/mDTTvtxS/20260214-163714.jpg" 
-SOHBET_QRUPU = "https://t.me/sohbetqruprc" 
+SOHBET_QRUPU = "https://t.me/ht_bots" 
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 tag_process = {}
@@ -93,8 +93,8 @@ async def start_cmd(client, message):
 
     buttons = [
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
-        [InlineKeyboardButton("🛠 sᴀʜɪʙə əᴍʀɪ", callback_data="sahiba_panel")]
+        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙ", url="https://t.me/KULLANİCİADİDİ"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
+        [InlineKeyboardButton("🛠 sᴀʜɪʙ əᴍʀɪ", callback_data="sahiba_panel")]
     ]
     
     await message.reply_photo(
@@ -107,12 +107,12 @@ async def start_cmd(client, message):
 @app.on_callback_query(filters.regex("sahiba_panel"))
 async def sahiba_callback(client, callback_query):
     if callback_query.from_user.id not in OWNERS:
-        return await callback_query.answer("⚠️ Bu əmrdən yalniz sᴀʜɪʙə istifadə edə bilər", show_alert=True)
+        return await callback_query.answer("⚠️ Bu əmrdən yalniz sᴀʜɪʙ istifadə edə bilər", show_alert=True)
     
     try:
         await callback_query.message.edit_caption(
             caption=(
-                "✨ **sᴀʜɪʙə ÖZƏL PANEL**\n\n"
+                "✨ **sᴀʜɪʙ ÖZƏL PANEL**\n\n"
                 "📢 **Broadcast:** `/yonlendir` ilə mesaj atın.\n"
                 "🚫 **Qadağa:** `/qadaga [söz]` yazaraq qadağan edin."
             ),
@@ -125,8 +125,8 @@ async def sahiba_callback(client, callback_query):
 async def back_home(client, callback_query):
     buttons = [
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙə", url="https://t.me/Aysberqqq"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
-        [InlineKeyboardButton("🛠 sᴀʜɪʙə əᴍʀɪ", callback_data="sahiba_panel")]
+        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙ", url="https://t.me/KULLANİCİADİDİ"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
+        [InlineKeyboardButton("🛠 sᴀʜɪʙ əᴍʀɪ", callback_data="sahiba_panel")]
     ]
     await callback_query.message.edit_caption(
         caption="**sᴀʟᴀᴍ ! ᴍəɴ ᴘʀᴏғᴇssɪᴏɴᴀʟ ᴛᴀɢ ᴠə ᴄʜᴀᴛʙᴏᴛ ʙᴏᴛᴜʏᴀᴍ.**\n\n**ᴋᴏᴍᴜᴛʟᴀʀ üçüɴ /help ʏᴀᴢıɴ.**",
