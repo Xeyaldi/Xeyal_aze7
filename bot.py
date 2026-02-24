@@ -93,7 +93,7 @@ async def start_cmd(client, message):
 
     buttons = [
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙ", url="https://t.me/KULLANİCİADİDİ"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
+        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙ", url="https://t.me/KULLANİCİADİDİ"), InlineKeyboardButton("🐦‍🔥ʙᴏᴛ ᴋᴀNᴀʟı", url=SOHBET_QRUPU)],
         [InlineKeyboardButton("🛠 sᴀʜɪʙ əᴍʀɪ", callback_data="sahiba_panel")]
     ]
     
@@ -125,7 +125,7 @@ async def sahiba_callback(client, callback_query):
 async def back_home(client, callback_query):
     buttons = [
         [InlineKeyboardButton("➕ ᴍəɴɪ ǫʀᴜᴘᴜɴᴜᴢᴀ əʟᴀᴠə ᴇᴅɪɴ", url=f"https://t.me/{(await client.get_me()).username}?startgroup=true")],
-        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙ", url="https://t.me/KULLANİCİADİDİ"), InlineKeyboardButton("💬 sÖʜʙəᴛ ǫʀᴜᴘᴜ", url=SOHBET_QRUPU)],
+        [InlineKeyboardButton("👩‍💻 sᴀʜɪʙ", url="https://t.me/KULLANİCİADİDİ"), InlineKeyboardButton("🐦‍🔥 ʙᴏᴛ ᴋᴀNᴀʟı", url=SOHBET_QRUPU)],
         [InlineKeyboardButton("🛠 sᴀʜɪʙ əᴍʀɪ", callback_data="sahiba_panel")]
     ]
     await callback_query.message.edit_caption(
