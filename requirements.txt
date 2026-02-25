@@ -13,3 +13,4 @@ pyowm
 googletrans==4.0.0-rc1
 yt-dlp
 Youtube-python
+google-generativeai
