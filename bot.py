@@ -6,6 +6,13 @@ from pyrogram.errors import FloodWait
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import random
 import asyncio
+import asyncio
+import random
+import requests
+import urllib.parse
+import google.generativeai as genai  # Bu AI kitabxanasıdır
+from pyrogram import Client, filters
+from pyrogram.enums import ChatType
 
 # --- PLUGİNS FAYLINI TANIMAQ ÜÇÜN KÖRPÜ (YENİ) ---
 def load_plugins(client):
