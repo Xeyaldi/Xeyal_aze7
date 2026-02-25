@@ -354,7 +354,7 @@ async def chatbot_toggle(client, message):
 
 # --- BOTUN CAVAB VERMƏSİ ÜÇÜN LAZIM OLAN HİSSƏ (Bunu da mütləq əlavə et) ---
 
-@app.on_message(filters.text & ~filters.command & filters.group)
+@app.on_message(filters.text & ~filters.command() & filters.group)
 async def ai_reply_handler(client, message):
     chat_id = message.chat.id
     
