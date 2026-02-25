@@ -320,7 +320,15 @@ chatbot_status = {}
 tag_process = {}
 link_block_status = {}
 
-# --- CHATBOT ON/OFF (Dəyişilməyib, sadəcə default OFF-dur) ---
+# --- BU HİSSƏ KODUN ƏN YUXARISINDA OLMALIDIR ---
+import google.generativeai as genai
+
+genai.configure(api_key="AIzaSyCYD1DZSbO03EWtAS13iOBSOtsJPmyz-S0")
+model = genai.GenerativeModel('gemini-pro')
+chat_sessions = {}
+
+# --- SƏNİN DÜZƏLİŞ İSTƏDİYİN KOMANDA ---
+
 @app.on_message(filters.command("chatbot"))
 async def chatbot_toggle(client, message):
     if not await is_admin(client, message): return
@@ -329,6 +337,7 @@ async def chatbot_toggle(client, message):
     
     status = message.command[1].lower()
     chat_id = message.chat.id
+    
     if status == "on":
         chatbot_status[chat_id] = True
         await message.reply_text("**✅ Chatbot bu söhbət üçün aktiv edildi!**")
@@ -336,6 +345,30 @@ async def chatbot_toggle(client, message):
         chatbot_status[chat_id] = False
         await message.reply_text("**❌ Chatbot bu söhbət üçün söndürüldü!**")
 
+# --- BOTUN CAVAB VERMƏSİ ÜÇÜN LAZIM OLAN HİSSƏ (Bunu da mütləq əlavə et) ---
+
+@app.on_message(filters.text & ~filters.command & filters.group)
+async def ai_reply_handler(client, message):
+    chat_id = message.chat.id
+    
+    # Əgər yuxarıdakı komanda ilə chatbot ON edilibsə
+    if chatbot_status.get(chat_id, False):
+        # Botun mesajına reply veriləndə işə düşür
+        if message.reply_to_message and message.reply_to_message.from_user.is_self:
+            await client.send_chat_action(chat_id, "typing")
+            
+            # AI Üslubu: Sən deyən, səmimi amma ciddi
+            prompt = "Sən ağıllı köməkçisən. 'Sən' deyə danış, amma canım-balam demə."
+            
+            try:
+                if chat_id not in chat_sessions:
+                    chat_sessions[chat_id] = model.start_chat(history=[])
+                
+                response = chat_sessions[chat_id].send_message(f"{prompt}\n\nSual: {message.text}")
+                await message.reply_text(response.text)
+            except:
+                await message.reply_text("Hazırda cavab verə bilmirəm.")
+                
 # --- TAĞ SİSTEMİ (Heç nə silinmədi, yanına mesaj yazmaq özəlliyi əlavə edildi) ---
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]))
 async def tag_handler(client, message):
