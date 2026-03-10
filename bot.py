@@ -268,31 +268,37 @@ async def universal_downloader(client, callback_query: CallbackQuery):
 import wikipedia # Kitabxananın tanınması üçün bura əlavə etdim
 import random
 
-@app.on(events.NewMessage(pattern=r'\.wiki (.*)'))
-async def wikipedia_search(event):
-    if not event.out: 
-        return
-    
-    # Kitabxananı birbaşa daxildə çağırırıq ki, NameError tam kəsilsin
+# --- WIKIPEDIA (Hər kəs üçün uyğunlaşdırıldı) ---
+@app.on_message(filters.command("wiki", prefixes="."))
+async def wikipedia_search(client, message):
     import wikipedia
     
-    query = event.pattern_match.group(1)
-    await event.edit(f"🔍 **{query}** haqqında məlumat axtarılır...")
+    # Əgər komandadan sonra söz yazılmayıbsa
+    if len(message.command) < 2:
+        return await message.reply_text("❌ Zəhmət olmasa axtarılacaq mövzunu yazın. Məsələn: `.wiki Xəyal çox yarawqldı onu necə əldə edim 🗿`")
+    
+    query = " ".join(message.command[1:])
+    status = await message.reply_text(f"🔍 **{query}** haqqında məlumat axtarılır...")
     
     try:
         wikipedia.set_lang("az")
         summary = wikipedia.summary(query, sentences=2)
-        await event.edit(f"📚 **Mövzu:** `{query}`\n\n📝 **Məlumat:** {summary}")
+        await status.edit_text(f"📚 **Mövzu:** `{query}`\n\n📝 **Məlumat:** {summary}")
+    except wikipedia.exceptions.DisambiguationError:
+        await status.edit_text(f"❌ `{query}` haqqında çoxlu nəticə var. Daha dəqiq yazın.")
+    except wikipedia.exceptions.PageError:
+        await status.edit_text(f"❌ `{query}` haqqında məlumat tapılmadı.")
     except Exception:
-        await event.edit(f"❌ `{query}` haqqında məlumat tapılmadı.")
+        await status.edit_text(f"❌ Xəta baş verdi.")
 
-@app.on(events.NewMessage(pattern=r'\.shans'))
-async def shans_yoxla(event):
-    if event.out:
-        import random
-        faiz = random.randint(1, 100)
-        await event.edit(f"🎲 Sənin bu günkü şansın: **%{faiz}**")
-        
+# --- ŞANS (Hər kəs üçün uyğunlaşdırıldı) ---
+@app.on_message(filters.command("shans", prefixes="."))
+async def shans_yoxla(client, message):
+    import random
+    faiz = random.randint(1, 100)
+    # Mesajı yazan şəxsin adını çəkməklə cavab verir
+    await message.reply_text(f"🎲 {message.from_user.first_name}, sənin bu günkü şansın: **%{faiz}**")
+            
 # --- YÖNLƏNDİRMƏ ---
 @app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
 async def broadcast_func(client, message):
