@@ -266,24 +266,38 @@ async def universal_downloader(client, callback_query: CallbackQuery):
             await callback_query.edit_message_text(f"❌ Yükləmə xətası: {str(e)}")
 
 #wiki
+import wikipedia
+import random
+
+# Qeyd: Kodun yuxarısında 'client' dəyişəninin tanımlandığından əmin ol!
+
 @client.on(events.NewMessage(pattern=r'\.wiki (.*)'))
 async def wikipedia_search(event):
-    if not event.out: return
+    # 'client' kiçik hərflə yazılmalıdır (loqdakı xətaya əsasən)
+    if not event.out: 
+        return
+    
     query = event.pattern_match.group(1)
     await event.edit(f"🔍 **{query}** haqqında məlumat axtarılır...")
+    
     try:
         wikipedia.set_lang("az")
-        summary = wikipedia.summary(query, sentences=3)
+        # sentences=2 etmək daha yaxşıdır, Telegram mesaj limitinə görə
+        summary = wikipedia.summary(query, sentences=2)
         await event.edit(f"📚 **Mövzu:** `{query}`\n\n📝 **Məlumat:** {summary}")
-    except:
+    except wikipedia.exceptions.DisambiguationError:
+        await event.edit(f"❌ `{query}` haqqında çoxlu nəticə var. Daha dəqiq yazın.")
+    except wikipedia.exceptions.PageError:
         await event.edit(f"❌ `{query}` haqqında məlumat tapılmadı.")
+    except Exception:
+        await event.edit(f"❌ Xəta baş verdi.")
 
 @client.on(events.NewMessage(pattern=r'\.shans'))
 async def shans_yoxla(event):
     if event.out:
-        faiz = random.randint(0, 100)
+        faiz = random.randint(1, 100)
         await event.edit(f"🎲 Sənin bu günkü şansın: **%{faiz}**")
-        
+               
 # --- YÖNLƏNDİRMƏ ---
 @app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
 async def broadcast_func(client, message):
