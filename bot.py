@@ -273,13 +273,14 @@ async def wikipedia_search(event):
     if not event.out: 
         return
     
-    # pattern_match istifadə edərək mövzunu götürürük
+    # Kitabxananı birbaşa daxildə çağırırıq ki, NameError tam kəsilsin
+    import wikipedia
+    
     query = event.pattern_match.group(1)
     await event.edit(f"🔍 **{query}** haqqında məlumat axtarılır...")
     
     try:
         wikipedia.set_lang("az")
-        # sentences=2 Telegram mesaj limitinə görə daha yaxşıdır
         summary = wikipedia.summary(query, sentences=2)
         await event.edit(f"📚 **Mövzu:** `{query}`\n\n📝 **Məlumat:** {summary}")
     except Exception:
@@ -288,6 +289,7 @@ async def wikipedia_search(event):
 @app.on(events.NewMessage(pattern=r'\.shans'))
 async def shans_yoxla(event):
     if event.out:
+        import random
         faiz = random.randint(1, 100)
         await event.edit(f"🎲 Sənin bu günkü şansın: **%{faiz}**")
         
