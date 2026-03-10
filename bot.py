@@ -265,8 +265,6 @@ async def universal_downloader(client, callback_query: CallbackQuery):
         except Exception as e:
             await callback_query.edit_message_text(f"❌ Yükləmə xətası: {str(e)}")
 
-# wiki
-
 import wikipedia
 import random
 
