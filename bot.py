@@ -265,29 +265,32 @@ async def universal_downloader(client, callback_query: CallbackQuery):
         except Exception as e:
             await callback_query.edit_message_text(f"❌ Yükləmə xətası: {str(e)}")
 
-@app.on_message(events.NewMessage(pattern=r'\.wiki (.*)'))
+import wikipedia # Kitabxananın tanınması üçün bura əlavə etdim
+import random
+
+@app.on(events.NewMessage(pattern=r'\.wiki (.*)'))
 async def wikipedia_search(event):
     if not event.out: 
         return
     
+    # pattern_match istifadə edərək mövzunu götürürük
     query = event.pattern_match.group(1)
     await event.edit(f"🔍 **{query}** haqqında məlumat axtarılır...")
     
     try:
-        import wikipedia
         wikipedia.set_lang("az")
+        # sentences=2 Telegram mesaj limitinə görə daha yaxşıdır
         summary = wikipedia.summary(query, sentences=2)
         await event.edit(f"📚 **Mövzu:** `{query}`\n\n📝 **Məlumat:** {summary}")
     except Exception:
         await event.edit(f"❌ `{query}` haqqında məlumat tapılmadı.")
 
-@app.on_message(events.NewMessage(pattern=r'\.shans'))
+@app.on(events.NewMessage(pattern=r'\.shans'))
 async def shans_yoxla(event):
     if event.out:
-        import random
         faiz = random.randint(1, 100)
         await event.edit(f"🎲 Sənin bu günkü şansın: **%{faiz}**")
-              
+        
 # --- YÖNLƏNDİRMƏ ---
 @app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
 async def broadcast_func(client, message):
