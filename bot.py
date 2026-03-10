@@ -264,7 +264,26 @@ async def universal_downloader(client, callback_query: CallbackQuery):
                 
         except Exception as e:
             await callback_query.edit_message_text(f"❌ Yükləmə xətası: {str(e)}")
-            
+
+#wiki
+@client.on(events.NewMessage(pattern=r'\.wiki (.*)'))
+async def wikipedia_search(event):
+    if not event.out: return
+    query = event.pattern_match.group(1)
+    await event.edit(f"🔍 **{query}** haqqında məlumat axtarılır...")
+    try:
+        wikipedia.set_lang("az")
+        summary = wikipedia.summary(query, sentences=3)
+        await event.edit(f"📚 **Mövzu:** `{query}`\n\n📝 **Məlumat:** {summary}")
+    except:
+        await event.edit(f"❌ `{query}` haqqında məlumat tapılmadı.")
+
+@client.on(events.NewMessage(pattern=r'\.shans'))
+async def shans_yoxla(event):
+    if event.out:
+        faiz = random.randint(0, 100)
+        await event.edit(f"🎲 Sənin bu günkü şansın: **%{faiz}**")
+        
 # --- YÖNLƏNDİRMƏ ---
 @app.on_message(filters.command("yonlendir") & filters.user(OWNERS))
 async def broadcast_func(client, message):
