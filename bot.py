@@ -14,6 +14,25 @@ import google.generativeai as genai  # Bu AI kitabxanasıdır
 from pyrogram import Client, filters
 from pyrogram.enums import ChatType
 
+import google.generativeai as genai
+
+# Nunu AI Ayarları
+GEMINI_KEY = "AIzaSyCYD1DZSbO03EWtAS13iOBSOtsJPmyz-S0" 
+genai.configure(api_key=GEMINI_KEY)
+
+NUNU_PROMPT = """
+Sənin adın Nunudur. Sən çox mehriban, şirin və köməkçil bir Azərbaycanlı qızsan. 
+İstifadəçilərlə danışarkən "canım", "balam", "şirinim", "əzizim" kimi səmimi sözlər işlədirsən. 
+Sən robot deyilsən, sanki bir insanın yaxın dostusan. 
+Azərbaycan dilində çox təbii danışırsan və həmişə pozitivsən.
+"""
+
+nunu_model = genai.GenerativeModel(
+    model_name='gemini-1.5-flash',
+    system_instruction=NUNU_PROMPT
+)
+
+chat_sessions = {}
 # --- PLUGİNS FAYLINI TANIMAQ ÜÇÜN KÖRPÜ (YENİ) ---
 def load_plugins(client):
     # plugin.py faylı varsa onu yükləyir
