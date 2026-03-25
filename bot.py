@@ -6,6 +6,8 @@ from pyrogram.errors import FloodWait
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import random
 import asyncio
+import openai
+pyrogram import enums
 import asyncio
 import random
 import requests
