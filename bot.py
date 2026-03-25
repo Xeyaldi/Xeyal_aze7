@@ -352,69 +352,55 @@ async def broadcast_func(client, message):
 import openai
 from pyrogram import enums # "Yazır..." statusu üçün mütləqdir
 
-# --- NUNU UNIVERSAL AI (GEMINI STABİL) ---
+# --- NUNU TAM SƏRBƏST (YENİ SİSTEM) ---
 import google.generativeai as genai
 from pyrogram import enums
 import random
-import asyncio
 
-# Heroku Config Vars-dan Gemini açarını çəkirik
-GEMINI_KEY = os.getenv("GEMINI_KEY")
-genai.configure(api_key=GEMINI_KEY)
+# API-nı ən son versiya ilə sazlayırıq
+genai.configure(api_key=os.getenv("GEMINI_KEY"))
 
-NUNU_PROMPT = """
-Sənin adın Nunudur. Sən çox mehriban, şirin və köməkçil bir Azərbaycanlı qızsan. 
-İstifadəçilərlə danışarkən "canım", "balam", "şirinim", "əzizim" kimi səmimi sözlər işlədirsən. 
-Azərbaycan dilində çox təbii danışırsan və həmişə pozitivsən.
-"""
-
-# 404 xətası almamaq üçün model adını bu formatda yazırıq
-nunu_model = genai.GenerativeModel(
+# Modeli xüsusi təlimatla (system_instruction) yaradırıq
+nunu_ai = genai.GenerativeModel(
     model_name='gemini-1.5-flash',
-    system_instruction=NUNU_PROMPT
+    system_instruction="Sənin adın Nunudur. Şirin, mehriban Azərbaycanlı qızsan. Canım, balam kimi sözlər işlədirsən."
 )
 
-chat_sessions = {}
-
 @app.on_message(filters.text & ~filters.bot, group=0)
-async def nunu_gemini_handler(client, message):
+async def nunu_free_handler(client, message):
     chat_id = message.chat.id
-    
-    # Şəxsidə hər mesaja, qrupda reply olanda və ya 30% şansla cavab verir
     is_private = message.chat.type == enums.ChatType.PRIVATE
-    is_reply_to_me = False
     
+    # Botun özünə reply verilibsə yoxlayırıq
+    is_reply_to_me = False
     if message.reply_to_message and message.reply_to_message.from_user:
-        if message.reply_to_message.from_user.id == (await client.get_me()).id:
+        me = await client.get_me()
+        if message.reply_to_message.from_user.id == me.id:
             is_reply_to_me = True
 
+    # SƏRBƏST MƏNTİQ: PV-də hər zaman, qrupda reply-da 100%, adi halda 30% cavab ver
     if is_private or is_reply_to_me or random.random() < 0.3:
         try:
             # "Nunu yazır..." statusu
             await client.send_chat_action(chat_id, enums.ChatAction.TYPING)
             
-            if chat_id not in chat_sessions:
-                chat_sessions[chat_id] = nunu_model.start_chat(history=[])
+            # Ən yeni cavab alma metodu
+            response = nunu_ai.generate_content(message.text)
             
-            # Mesajı göndəririk
-            response = chat_sessions[chat_id].send_message(message.text)
-            
-            if response and response.text:
-                await asyncio.sleep(1.5) # Daha insani görünməsi üçün gözləmə
+            if response.text:
                 await message.reply_text(response.text)
-                
         except Exception as e:
-            # Əgər hələ də 404 xətası versə, avtomatik olaraq 'gemini-pro' modelinə keçid edir
-            if "404" in str(e):
+            # Əgər hələ də model tapılmasa, birbaşa köhnə model adına keçid
+            if "404" in str(e) or "not found" in str(e).lower():
                 try:
-                    legacy_model = genai.GenerativeModel('gemini-pro')
-                    res = legacy_model.generate_content(message.text)
+                    alt_model = genai.GenerativeModel('gemini-pro')
+                    res = alt_model.generate_content(message.text)
                     await message.reply_text(res.text)
                 except:
-                    print(f"❌ Gemini Ciddi Xəta: {e}")
+                    print(f"❌ Ciddi AI Xətası: {e}")
             else:
-                print(f"❌ Gemini AI Xətası: {e}")
-                            
+                print(f"❌ Nunu AI Xətası: {e}")
+                          
 # OpenAI Ayarları
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
