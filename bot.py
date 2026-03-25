@@ -352,9 +352,11 @@ async def broadcast_func(client, message):
 import openai
 from pyrogram import enums # "Yazır..." statusu üçün mütləqdir
 
-# --- NUNU UNIVERSAL AI (GEMINI) ---
+# --- NUNU UNIVERSAL AI (GEMINI STABİL) ---
 import google.generativeai as genai
 from pyrogram import enums
+import random
+import asyncio
 
 # Heroku Config Vars-dan Gemini açarını çəkirik
 GEMINI_KEY = os.getenv("GEMINI_KEY")
@@ -366,6 +368,7 @@ Sənin adın Nunudur. Sən çox mehriban, şirin və köməkçil bir Azərbaycan
 Azərbaycan dilində çox təbii danışırsan və həmişə pozitivsən.
 """
 
+# 404 xətası almamaq üçün model adını bu formatda yazırıq
 nunu_model = genai.GenerativeModel(
     model_name='gemini-1.5-flash',
     system_instruction=NUNU_PROMPT
@@ -377,7 +380,7 @@ chat_sessions = {}
 async def nunu_gemini_handler(client, message):
     chat_id = message.chat.id
     
-    # Məntiq: Şəxsidə hər mesaja, qrupda isə reply olanda və ya 30% şansla cavab verir
+    # Şəxsidə hər mesaja, qrupda reply olanda və ya 30% şansla cavab verir
     is_private = message.chat.type == enums.ChatType.PRIVATE
     is_reply_to_me = False
     
@@ -387,21 +390,31 @@ async def nunu_gemini_handler(client, message):
 
     if is_private or is_reply_to_me or random.random() < 0.3:
         try:
-            # "Nunu yazır..." statusunu göstər
+            # "Nunu yazır..." statusu
             await client.send_chat_action(chat_id, enums.ChatAction.TYPING)
             
             if chat_id not in chat_sessions:
                 chat_sessions[chat_id] = nunu_model.start_chat(history=[])
             
+            # Mesajı göndəririk
             response = chat_sessions[chat_id].send_message(message.text)
             
             if response and response.text:
-                await asyncio.sleep(1) # Daha təbii hiss olunması üçün
+                await asyncio.sleep(1.5) # Daha insani görünməsi üçün gözləmə
                 await message.reply_text(response.text)
                 
         except Exception as e:
-            print(f"❌ Gemini AI Xətası: {e}")
-            
+            # Əgər hələ də 404 xətası versə, avtomatik olaraq 'gemini-pro' modelinə keçid edir
+            if "404" in str(e):
+                try:
+                    legacy_model = genai.GenerativeModel('gemini-pro')
+                    res = legacy_model.generate_content(message.text)
+                    await message.reply_text(res.text)
+                except:
+                    print(f"❌ Gemini Ciddi Xəta: {e}")
+            else:
+                print(f"❌ Gemini AI Xətası: {e}")
+                            
 # OpenAI Ayarları
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
