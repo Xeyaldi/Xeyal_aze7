@@ -7,7 +7,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQ
 import random
 import asyncio
 import openai
-pyrogram import enums
+from pyrogram import enums
 import asyncio
 import random
 import requests
