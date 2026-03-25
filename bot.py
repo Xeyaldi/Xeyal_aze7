@@ -352,6 +352,56 @@ async def broadcast_func(client, message):
 import openai
 from pyrogram import enums # "Yazır..." statusu üçün mütləqdir
 
+# --- NUNU UNIVERSAL AI (GEMINI) ---
+import google.generativeai as genai
+from pyrogram import enums
+
+# Heroku Config Vars-dan Gemini açarını çəkirik
+GEMINI_KEY = os.getenv("GEMINI_KEY")
+genai.configure(api_key=GEMINI_KEY)
+
+NUNU_PROMPT = """
+Sənin adın Nunudur. Sən çox mehriban, şirin və köməkçil bir Azərbaycanlı qızsan. 
+İstifadəçilərlə danışarkən "canım", "balam", "şirinim", "əzizim" kimi səmimi sözlər işlədirsən. 
+Azərbaycan dilində çox təbii danışırsan və həmişə pozitivsən.
+"""
+
+nunu_model = genai.GenerativeModel(
+    model_name='gemini-1.5-flash',
+    system_instruction=NUNU_PROMPT
+)
+
+chat_sessions = {}
+
+@app.on_message(filters.text & ~filters.bot, group=0)
+async def nunu_gemini_handler(client, message):
+    chat_id = message.chat.id
+    
+    # Məntiq: Şəxsidə hər mesaja, qrupda isə reply olanda və ya 30% şansla cavab verir
+    is_private = message.chat.type == enums.ChatType.PRIVATE
+    is_reply_to_me = False
+    
+    if message.reply_to_message and message.reply_to_message.from_user:
+        if message.reply_to_message.from_user.id == (await client.get_me()).id:
+            is_reply_to_me = True
+
+    if is_private or is_reply_to_me or random.random() < 0.3:
+        try:
+            # "Nunu yazır..." statusunu göstər
+            await client.send_chat_action(chat_id, enums.ChatAction.TYPING)
+            
+            if chat_id not in chat_sessions:
+                chat_sessions[chat_id] = nunu_model.start_chat(history=[])
+            
+            response = chat_sessions[chat_id].send_message(message.text)
+            
+            if response and response.text:
+                await asyncio.sleep(1) # Daha təbii hiss olunması üçün
+                await message.reply_text(response.text)
+                
+        except Exception as e:
+            print(f"❌ Gemini AI Xətası: {e}")
+            
 # OpenAI Ayarları
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
