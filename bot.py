@@ -17,7 +17,7 @@ from pyrogram.enums import ChatType
 import google.generativeai as genai
 
 # Nunu AI Ayarları
-GEMINI_KEY = "AIzaSyCYD1DZSbO03EWtAS13iOBSOtsJPmyz-S0" 
+GEMINI_KEY = "AIzaSyDDCm8i8cPtKOjHPK57um6yL45n6Zf5ta8" 
 genai.configure(api_key=GEMINI_KEY)
 
 NUNU_PROMPT = """
