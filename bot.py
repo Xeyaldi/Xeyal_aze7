@@ -351,9 +351,6 @@ async def broadcast_func(client, message):
 
 import openai
 from pyrogram import enums # "Yazır..." statusu üçün mütləqdir
-
-
-    
     if message.reply_to_message and message.reply_to_message.from_user:
         if message.reply_to_message.from_user.id == (await client.get_me()).id:
             is_reply_to_me = True
