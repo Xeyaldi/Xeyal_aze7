@@ -349,34 +349,7 @@ async def broadcast_func(client, message):
             continue
     await status_msg.edit(f"✅ Yönləndirmə tamamlandı: {success} yerə göndərildi.")
 
-import openai
-from pyrogram import enums # "Yazır..." statusu üçün mütləqdir
-    if message.reply_to_message and message.reply_to_message.from_user:
-        if message.reply_to_message.from_user.id == (await client.get_me()).id:
-            is_reply_to_me = True
 
-    # Məntiq: Şəxsidə hər mesaja, qrupda isə reply olanda və ya təsadüfi cavab verir
-    if is_private or is_reply_to_me or random.random() < 0.3:
-        try:
-            # Yuxarıda "Nunu yazır..." statusunu göstər
-            await client.send_chat_action(chat_id, enums.ChatAction.TYPING)
-            
-            # OpenAI müraciəti
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": NUNU_PROMPT},
-                    {"role": "user", "content": message.text}
-                ]
-            )
-            
-            answer = response.choices[0].message.content
-            if answer:
-                await asyncio.sleep(1) # Daha təbii görünmək üçün 1 saniyə gözlə
-                await message.reply_text(answer)
-                
-        except Exception as e:
-            print(f"❌ OpenAI Xətası: {e}")
             
 # --- HELP ---
 @app.on_message(filters.command("help"))
@@ -430,9 +403,7 @@ async def chatbot_toggle(client, message):
     elif status == "off":
         chatbot_status[chat_id] = False
         await message.reply_text("**❌ Chatbot bu söhbət üçün söndürüldü!**")
-
-
-                             
+                           
 # --- TAĞ SİSTEMİ (Heç nə silinmədi, yanına mesaj yazmaq özəlliyi əlavə edildi) ---
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]))
 async def tag_handler(client, message):
