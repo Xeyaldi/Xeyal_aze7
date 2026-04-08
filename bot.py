@@ -417,16 +417,6 @@ link_block_status = {}
 # --- BU HİSSƏ KODUN ƏN YUXARISINDA OLMALIDIR ---
 import google.generativeai as genai
 
-# AI Ayarları
-genai.configure(api_key="AIzaSyCYD1DZSbO03EWtAS13iOBSOtsJPmyz-S0")
-model = genai.GenerativeModel('gemini-pro')
-
-# Əgər yuxarıda təyin edilməyibsə, bunları bura əlavə et
-if 'chat_sessions' not in globals():
-    chat_sessions = {}
-if 'chatbot_status' not in globals():
-    chatbot_status = {}
-
 # --- CHATBOT KOMANDASI ---
 @app.on_message(filters.command("chatbot"))
 async def chatbot_toggle(client, message):
@@ -444,33 +434,7 @@ async def chatbot_toggle(client, message):
         chatbot_status[chat_id] = False
         await message.reply_text("**❌ Chatbot bu söhbət üçün söndürüldü!**")
 
-# --- AI CAVAB MEXANİZMİ ---
-@app.on_message(filters.text & filters.group & ~filters.bot, group=1)
-async def ai_reply_handler(client, message):
-    chat_id = message.chat.id
-    
-    # Chatbot aktivdirsə
-    if chatbot_status.get(chat_id, False):
-        # Reply verilən mesaj varmı və o mesaj botun özünəmi aiddir?
-        if message.reply_to_message and message.reply_to_message.from_user:
-            if message.reply_to_message.from_user.id == (await client.get_me()).id:
-                await client.send_chat_action(chat_id, "typing")
-                
-                # Sənin istədiyin üslub
-                prompt = "Sən ağıllı köməkçisən. 'Sən' deyə danış, amma canım-balam demə."
-                
-                try:
-                    if chat_id not in chat_sessions:
-                        chat_sessions[chat_id] = model.start_chat(history=[])
-                    
-                    # Gemini-yə sorğunu göndəririk
-                    response = chat_sessions[chat_id].send_message(f"{prompt}\n\nSual: {message.text}")
-                    
-                    if response and response.text:
-                        await message.reply_text(response.text)
-                except Exception as e:
-                    print(f"AI Error: {e}")
-                    # Xəta olanda qrupa mesaj yazıb bezdirməsin, sadəcə loqda qalsın
+
                              
 # --- TAĞ SİSTEMİ (Heç nə silinmədi, yanına mesaj yazmaq özəlliyi əlavə edildi) ---
 @app.on_message(filters.command(["tag", "utag", "flagtag", "tektag"]))
