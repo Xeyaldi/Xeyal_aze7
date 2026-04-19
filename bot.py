@@ -221,6 +221,46 @@ async def youtube_search(client, message):
     except Exception as e:
         await status.edit_text(f"❌ Axtarış xətası: {str(e)}")
 
+ai_status = {}  # AI-nın hansı qruplarda aktiv olduğunu yadda saxlayır
+
+@app.on_message(filters.command("ai"))
+async def ai_toggle(client, message):
+    if not await is_admin(client, message): 
+        return await message.reply_text("❌ Bu əmri yalnız adminlər istifadə edə bilər.")
+    
+    if len(message.command) < 2:
+        return await message.reply_text("🔎 **İstifadə:** `/ai on` və ya `/ai off`")
+    
+    status = message.command[1].lower()
+    chat_id = message.chat.id
+    
+    if status == "on":
+        ai_status[chat_id] = True
+        await message.reply_text("✅ **Aysberq AI aktiv edildi!** Sualınızı verə bilərsiniz.")
+    elif status == "off":
+        ai_status[chat_id] = False
+        await message.reply_text("❌ **Aysberq AI söndürüldü.**")
+
+ai_status = {}  # AI-nın hansı qruplarda aktiv olduğunu yadda saxlayır
+
+@app.on_message(filters.command("ai"))
+async def ai_toggle(client, message):
+    if not await is_admin(client, message): 
+        return await message.reply_text("❌ Bu əmri yalnız adminlər istifadə edə bilər.")
+    
+    if len(message.command) < 2:
+        return await message.reply_text("🔎 **İstifadə:** `/ai on` və ya `/ai off`")
+    
+    status = message.command[1].lower()
+    chat_id = message.chat.id
+    
+    if status == "on":
+        ai_status[chat_id] = True
+        await message.reply_text("✅ **Aysberq AI aktiv edildi!** Sualınızı verə bilərsiniz.")
+    elif status == "off":
+        ai_status[chat_id] = False
+        await message.reply_text("❌ **Aysberq AI söndürüldü.**")
+           
 # 2. 🔗 LİNK TUTUCU (Sosial şəbəkə linki atılan kimi işə düşür)
 @app.on_message(filters.regex(r"(https?://(?:www\.)?(?:instagram\.com|tiktok\.com|twitter\.com|x\.com|facebook\.com)\S+)"))
 async def link_downloader(client, message):
