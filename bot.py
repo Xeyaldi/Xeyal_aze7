@@ -18,23 +18,67 @@ from pyrogram.enums import ChatType
 
 import google.generativeai as genai
 
-# Nunu AI Ayarları
-GEMINI_KEY = "AIzaSyDDCm8i8cPtKOjHPK57um6yL45n6Zf5ta8" 
-genai.configure(api_key=GEMINI_KEY)
+import os
+from openai import OpenAI
 
-NUNU_PROMPT = """
-Sənin adın Nunudur. Sən çox mehriban, şirin və köməkçil bir Azərbaycanlı qızsan. 
-İstifadəçilərlə danışarkən "canım", "balam", "şirinim", "əzizim" kimi səmimi sözlər işlədirsən. 
-Sən robot deyilsən, sanki bir insanın yaxın dostusan. 
-Azərbaycan dilində çox təbii danışırsan və həmişə pozitivsən.
-"""
-
-nunu_model = genai.GenerativeModel(
-    model_name='gemini-1.5-flash',
-    system_instruction=NUNU_PROMPT
+# Grok (xAI) Ayarları
+XAI_API_KEY = "SƏNİN_GROK_KEYİN" # .env faylına qoysan daha yaxşıdır
+client_grok = OpenAI(
+    api_key=XAI_API_KEY,
+    base_url="https://api.x.ai/v1",
 )
 
-chat_sessions = {}
+# Qız obrazı və ailə məlumatı üçün xüsusi təlimat
+GROK_PROMPT = (
+    "Sənin adın Aysberq AI-dır. Sən çox mehriban, şirin və səmimi bir Azərbaycanlı qızsan. "
+    "İstifadəçilərlə danışarkən 'canım', 'əzizim' kimi sözlər işlədirsən. "
+    "Əgər kimsə səndən kim olduğunu və ya valideynlərini soruşsa, mütləq de: 'Mənim atam Xəyal, anam isə Aysberqdir'. "
+    "Həmişə pozitiv və köməkçil ol."
+)
+
+ai_status = {} # Qruplarda aktiv/passiv vəziyyəti
+
+# --- /ai on və /ai off komandaları ---
+@app.on_message(filters.command("ai"))
+async def ai_toggle(client, message):
+    if not await is_admin(client, message): 
+        return await message.reply_text("❌ Bu əmri yalnız adminlər istifadə edə bilər.")
+    
+    if len(message.command) < 2:
+        return await message.reply_text("🔎 **İstifadə:** `/ai on` və ya `/ai off`")
+    
+    status = message.command[1].lower()
+    if status == "on":
+        ai_status[message.chat.id] = True
+        await message.reply_text("✅ **Grok AI (Aysberq) aktiv edildi!**")
+    elif status == "off":
+        ai_status[message.chat.id] = False
+        await message.reply_text("❌ **Grok AI (Aysberq) söndürüldü.**")
+
+# --- Grok AI Mesaj Handler ---
+@app.on_message(filters.text & ~filters.bot)
+async def grok_chat(client, message):
+    chat_id = message.chat.id
+    
+    # Əgər AI aktivdirsə və mesaj komanda deyilsə
+    if ai_status.get(chat_id, False) and not message.text.startswith("/"):
+        try:
+            await client.send_chat_action(chat_id, enums.ChatAction.TYPING)
+            
+            completion = client_grok.chat.completions.create(
+                model="grok-beta", # və ya ən son model adı
+                messages=[
+                    {"role": "system", "content": GROK_PROMPT},
+                    {"role": "user", "content": message.text},
+                ],
+            )
+            
+            response = completion.choices[0].message.content
+            await message.reply_text(response)
+            
+        except Exception as e:
+            print(f"Grok Xətası: {e}")
+            
 # --- PLUGİNS FAYLINI TANIMAQ ÜÇÜN KÖRPÜ (YENİ) ---
 def load_plugins(client):
     # plugin.py faylı varsa onu yükləyir
