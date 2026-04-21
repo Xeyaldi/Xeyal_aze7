@@ -16,30 +16,23 @@ import google.generativeai as genai  # Bu AI kitabxanasıdır
 from pyrogram import Client, filters
 from pyrogram.enums import ChatType
 
-import google.generativeai as genai
+from groq import Groq
 
-import os
-from openai import OpenAI
+# Groq Ayarları
+GROQ_CLIENT = Groq(api_key=os.getenv("GROQ_API_KEY")) # .env faylına GROQ_API_KEY əlavə elə
 
-# Grok (xAI) Ayarları
-XAI_API_KEY = "SƏNİN_GROK_KEYİN" # .env faylına qoysan daha yaxşıdır
-client_grok = OpenAI(
-    api_key=XAI_API_KEY,
-    base_url="https://api.x.ai/v1",
-)
+# Nunu AI Personalı (Prompt)
+NUNU_PROMPT = """
+Sənin adın Nunudur. Sən mehriban, şirin və köməkçil bir Azərbaycanlı qızsan. 
+Sənə "Sən kimsən?" deyə soruşanda həmişə belə cavab verirsən: "Mənim Atam Xəyal, Anam isə Aysberqdir! ❤️"
+İstifadəçilərlə "canım", "balam", "şirinim", "əzizim" kimi səmimi sözlərlə danışırsan. 
+Sən robot deyilsən, sanki bir insanın yaxın dostusan.
+"""
 
-# Qız obrazı və ailə məlumatı üçün xüsusi təlimat
-GROK_PROMPT = (
-    "Sənin adın Aysberq AI-dır. Sən çox mehriban, şirin və səmimi bir Azərbaycanlı qızsan. "
-    "İstifadəçilərlə danışarkən 'canım', 'əzizim' kimi sözlər işlədirsən. "
-    "Əgər kimsə səndən kim olduğunu və ya valideynlərini soruşsa, mütləq de: 'Mənim atam Xəyal, anam isə Aysberqdir'. "
-    "Həmişə pozitiv və köməkçil ol."
-)
+ai_status = {} # AI-nın hansı qruplarda aktiv olduğunu yadda saxlayır
 
-ai_status = {} # Qruplarda aktiv/passiv vəziyyəti
-
-# --- /ai on və /ai off komandaları ---
-@app.on_message(filters.command("ai"))
+# --- AI ON/OFF KOMANDASI ---
+@app.on_message(filters.command("ai") & filters.group)
 async def ai_toggle(client, message):
     if not await is_admin(client, message): 
         return await message.reply_text("❌ Bu əmri yalnız adminlər istifadə edə bilər.")
@@ -48,37 +41,42 @@ async def ai_toggle(client, message):
         return await message.reply_text("🔎 **İstifadə:** `/ai on` və ya `/ai off`")
     
     status = message.command[1].lower()
-    if status == "on":
-        ai_status[message.chat.id] = True
-        await message.reply_text("✅ **Grok AI (Aysberq) aktiv edildi!**")
-    elif status == "off":
-        ai_status[message.chat.id] = False
-        await message.reply_text("❌ **Grok AI (Aysberq) söndürüldü.**")
-
-# --- Grok AI Mesaj Handler ---
-@app.on_message(filters.text & ~filters.bot)
-async def grok_chat(client, message):
     chat_id = message.chat.id
     
-    # Əgər AI aktivdirsə və mesaj komanda deyilsə
-    if ai_status.get(chat_id, False) and not message.text.startswith("/"):
-        try:
-            await client.send_chat_action(chat_id, enums.ChatAction.TYPING)
-            
-            completion = client_grok.chat.completions.create(
-                model="grok-beta", # və ya ən son model adı
-                messages=[
-                    {"role": "system", "content": GROK_PROMPT},
-                    {"role": "user", "content": message.text},
-                ],
-            )
-            
-            response = completion.choices[0].message.content
-            await message.reply_text(response)
-            
-        except Exception as e:
-            print(f"Grok Xətası: {e}")
-            
+    if status == "on":
+        ai_status[chat_id] = True
+        await message.reply_text("✅ **Nunu AI (Groq) aktiv edildi!** Sualını ver, canım.")
+    elif status == "off":
+        ai_status[chat_id] = False
+        await message.reply_text("❌ **Nunu AI söndürüldü.**")
+
+# --- GROQ İLƏ CAVAB VERMƏ HANDLERİ ---
+@app.on_message(filters.text & filters.group & ~filters.bot)
+async def nunu_ai_responder(client, message):
+    chat_id = message.chat.id
+    
+    # Əgər AI aktiv deyilsə və ya mesaj komandadırsa cavab vermə
+    if not ai_status.get(chat_id, False) or message.text.startswith(("/", ".")):
+        return
+
+    try:
+        # Groq API çağırışı
+        completion = GROQ_CLIENT.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": NUNU_PROMPT},
+                {"role": "user", "content": message.text}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        answer = completion.choices[0].message.content
+        await message.reply_text(answer)
+        
+    except Exception as e:
+        print(f"Groq Xətası: {e}")
+                   
 # --- PLUGİNS FAYLINI TANIMAQ ÜÇÜN KÖRPÜ (YENİ) ---
 def load_plugins(client):
     # plugin.py faylı varsa onu yükləyir
